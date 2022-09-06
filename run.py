@@ -1,16 +1,13 @@
-import cv2
-import pandas as pd
-from norfair import AbsolutePaths, Detection, Tracker, Video
+from norfair import AbsolutePaths, Tracker, Video
 from norfair.camera_motion import MotionEstimator
+from norfair.distances import iou_opt, mean_euclidean
 
 from inference import Classifier, Converter, YoloV5
 from inference.yolov5 import YoloV5
 from run_utils import (
-    _iou,
     get_ball_detections,
     get_main_ball,
     get_player_detections,
-    mean_euclidean,
     update_motion_estimator,
 )
 from soccer import Match, Player, Team
@@ -22,7 +19,7 @@ MAX_DISTANCE: int = 10000
 video = Video(input_path="videos/soccer_posession_short.mp4")
 
 player_tracker = Tracker(
-    distance_function=_iou,
+    distance_function=iou_opt,
     distance_threshold=DISTANCE_THRESHOLD_BBOX,
     initialization_delay=3,
 )

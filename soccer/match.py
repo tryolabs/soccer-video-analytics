@@ -114,7 +114,7 @@ class Match:
     def time_possessions(self) -> str:
         return f"{self.home.name}: {self.home.get_time_possession(self.fps)} | {self.away.name}: {self.away.get_time_possession(self.fps)}"
 
-    def possession_bar(self, frame: np.ndarray) -> np.ndarray:
+    def possession_bar(self, frame: np.ndarray, origin: tuple) -> np.ndarray:
         """
 
         Draw possession bar
@@ -123,6 +123,8 @@ class Match:
         ----------
         frame : np.ndarray
             Frame
+        origin : tuple
+            Origin (x, y)
 
         Returns
         -------
@@ -130,8 +132,8 @@ class Match:
             Frame with possession bar
         """
 
-        bar_x = 1920 - 507
-        bar_y = 195
+        bar_x = origin[0]
+        bar_y = origin[1]
         bar_height = 30
         bar_width = 367
 
@@ -144,7 +146,7 @@ class Match:
             ratio = 0.93
 
         left_rectangle = (
-            [bar_x, bar_y],
+            origin,
             [int(bar_x + ratio * bar_width), bar_y + bar_height],
         )
 
@@ -154,7 +156,6 @@ class Match:
             frame,
             rectangle=left_rectangle,
             color=left_color,
-            # left=True,
         )
 
         right_rectangle = (
@@ -393,18 +394,14 @@ class Match:
         np.ndarray
             Frame with elements of the match
         """
-
-        home_counter_origin = (1920 - 500, 140)
-        new_frame = self.draw_home_counter(frame, origin=home_counter_origin)
-        away_counter_origin = (1920 - 300, 140)
-        new_frame = self.draw_away_counter(new_frame, origin=away_counter_origin)
-
-        new_frame = self.add_tryolabs_logo(new_frame, origin=(1920 - 362, 55))
+        frame_width = frame.shape[1]
+        frame = self.draw_home_counter(frame, origin=(frame_width - 500, 140))
+        frame = self.draw_away_counter(frame, origin=(frame_width - 300, 140))
+        frame = self.add_tryolabs_logo(frame, origin=(frame_width - 362, 55))
+        frame = self.possession_bar(frame, origin=(frame_width - 507, 195))
 
         if self.closest_player:
-            new_frame = self.closest_player.draw_pointer(new_frame)
-
-        new_frame = self.possession_bar(new_frame)
+            frame = self.closest_player.draw_pointer(frame)
 
         if debug:
             # Draw line from closest player feet to ball
@@ -417,12 +414,12 @@ class Match:
                 if distance > self.ball_distance_threshold:
                     color = (255, 255, 255)
 
-                new_frame = cv2.line(
-                    new_frame,
+                frame = cv2.line(
+                    frame,
                     closest_foot,
                     self.ball.center,
                     color,
                     2,
                 )
 
-        return new_frame
+        return frame
