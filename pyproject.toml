@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "demo"
+version = "0.1.0"
+description = ""
+authors = ["Diego Marvid <diegomarvid99@hotmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+torch = ">=1.7.0"
+pandas = ">=1.1.4"
+opencv-python = ">=4.1.1"
+numpy = ">=1.18.5"
+torchvision = ">=0.8.1"
+matplotlib = ">=3.2.2"
+Pillow = ">=7.1.2"
+PyYAML = ">=5.3.1"
+requests = ">=2.23.0"
+scipy = ">=1.4.1"
+tqdm = ">=4.64.0"
+tensorboard = ">=2.4.1"
+seaborn = ">=0.11.0"
+ipython = "^8.4.0"
+psutil = "^5.9.1"
+thop = ">=0.1.1"
+
+
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
