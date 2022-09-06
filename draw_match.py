@@ -1,11 +1,11 @@
 import cv2
 import pandas as pd
 
-from inference import Classifier, Converter, YoloV5
+from inference import Converter, NNClassifier, YoloV5
 from run_utils import get_player_detections
 from soccer import Ball, Match, Player, Team
 
-classifier = Classifier(
+classifier = NNClassifier(
     model_path="models/model_classification.pt",
     classes=["Chelsea", "Man City", "Referee"],
 )

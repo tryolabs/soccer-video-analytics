@@ -41,7 +41,7 @@ class Net(nn.Module):
         return x
 
 
-class Classifier(BaseClassifier):
+class NNClassifier(BaseClassifier):
     def __init__(
         self,
         model_path: str,

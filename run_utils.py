@@ -7,7 +7,7 @@ import pandas as pd
 from norfair import Detection
 from norfair.camera_motion import MotionEstimator
 
-from inference import BaseDetector, Classifier, Converter, YoloV5
+from inference import BaseClassifier, BaseDetector, Converter, YoloV5
 from soccer import Ball, Match
 
 
@@ -19,7 +19,7 @@ def get_ball_detections(
 
 
 def get_player_detections(
-    person_detector: BaseDetector, classifier: Classifier, frame: np.ndarray
+    person_detector: BaseDetector, classifier: BaseClassifier, frame: np.ndarray
 ) -> List[norfair.Detection]:
 
     person_df = person_detector.predict(frame)

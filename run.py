@@ -2,7 +2,7 @@ from norfair import AbsolutePaths, Tracker, Video
 from norfair.camera_motion import MotionEstimator
 from norfair.distances import iou_opt, mean_euclidean
 
-from inference import Classifier, Converter, YoloV5
+from inference import Converter, NNClassifier, YoloV5
 from inference.yolov5 import YoloV5
 from run_utils import (
     get_ball_detections,
@@ -36,7 +36,7 @@ path_drawer = AbsolutePaths(max_history=50, thickness=2, color=(255, 255, 255))
 player_detector = YoloV5()
 ball_detector = YoloV5(model_path="models/best.pt")
 
-classifier = Classifier(
+classifier = NNClassifier(
     model_path="models/model_classification.pt",
     classes=["Chelsea", "Man City", "Referee"],
 )
