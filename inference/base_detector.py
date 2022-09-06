@@ -39,6 +39,26 @@ class BaseDetector(ABC):
         pass
 
     def check_result_format(self, result: pd.DataFrame) -> pd.DataFrame:
+        """
+        Checks if the result DataFrame has the correct format
+
+        Parameters
+        ----------
+        result : pd.DataFrame
+            DataFrame to check
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame if it has correct format
+
+        Raises
+        ------
+        TypeError
+            If result type is not pd.DataFrame
+        ValueError
+            If result does not contain the correct columns
+        """
         if type(result) != pd.DataFrame:
             raise TypeError("result must be a pandas DataFrame")
 
@@ -58,6 +78,27 @@ class BaseDetector(ABC):
         color: Tuple = None,
         label: str = None,
     ) -> np.ndarray:
+        """
+        Draws a bounding box on the image
+
+        Parameters
+        ----------
+        top_left : Tuple
+            Top left corner of the bounding box (x, y)
+        bottom_right : Tuple
+            Bottom right corner of the bounding box (x, y)
+        img : np.ndarray
+            Image to draw the bounding box on
+        color : Tuple, optional
+            Color of the bounding box, by default None
+        label : str, optional
+            Label of the bounding box, by default None
+
+        Returns
+        -------
+        np.ndarray
+            Image with bounding box
+        """
 
         if not color:
             color = (0, 255, 0)
@@ -79,9 +120,23 @@ class BaseDetector(ABC):
 
     @staticmethod
     def get_result_images(
-        self, predictions: pd.DataFrame, img: np.ndarray
+        predictions: pd.DataFrame, img: np.ndarray
     ) -> List[np.ndarray]:
+        """
+        Returns a list of bounding box images
 
+        Parameters
+        ----------
+        predictions : pd.DataFrame
+            DataFrame containing the bounding boxes and the class of the objects
+        img : np.ndarray
+            Image where the predictions were made
+
+        Returns
+        -------
+        List[np.ndarray]
+            List of bounding box images
+        """
         images = []
 
         for index, row in predictions.iterrows():
@@ -98,6 +153,26 @@ class BaseDetector(ABC):
 
     @staticmethod
     def draw(self, predictions: pd.DataFrame, img: np.ndarray) -> np.ndarray:
+        """
+        Draws the bounding boxes on the image
+
+        Parameters
+        ----------
+        predictions : pd.DataFrame
+            DataFrame containing the bounding boxes and the class of the objects
+        img : np.ndarray
+            Image where the predictions were made
+
+        Returns
+        -------
+        np.ndarray
+            Image with bounding boxes
+
+        Raises
+        ------
+        TypeError
+            If predictions type is not pd.DataFrame
+        """
 
         if type(predictions) != pd.DataFrame:
             raise TypeError("predictions must be a pandas dataframe")
@@ -137,6 +212,26 @@ class BaseDetector(ABC):
     def generate_predictions_mask(
         predictions: pd.DataFrame, img: np.ndarray
     ) -> np.ndarray:
+        """
+        Generates a mask of the predictions bounding boxes
+
+        Parameters
+        ----------
+        predictions : pd.DataFrame
+            DataFrame containing the bounding boxes and the class of the objects
+        img : np.ndarray
+            Image where the predictions were made
+
+        Returns
+        -------
+        np.ndarray
+            Mask of the predictions bounding boxes
+
+        Raises
+        ------
+        TypeError
+            If predictions type is not pd.DataFrame
+        """
 
         if type(predictions) != pd.DataFrame:
             raise TypeError("predictions must be a pandas dataframe")
