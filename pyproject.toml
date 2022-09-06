@@ -22,6 +22,7 @@ seaborn = ">=0.11.0"
 ipython = "^8.4.0"
 psutil = "^5.9.1"
 thop = ">=0.1.1"
+norfair = {git = "https://github.com/tryolabs/norfair.git", rev = "master"}
 
 
 
