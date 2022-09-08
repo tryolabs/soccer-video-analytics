@@ -111,6 +111,17 @@ class HSVClassifier(BaseClassifier):
     def get_img_power(self, img: np.ndarray) -> float:
         # convert hsv to grey
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        # cut the image to get jersey
+        height, width = img.shape
+
+        y_start = int(height * 0.15)
+        y_end = int(height * 0.50)
+        x_start = int(width * 0.15)
+        x_end = int(width * 0.85)
+
+        img = img[y_start:y_end, x_start:x_end]
+
         return cv2.countNonZero(img)
 
     def set_power_in_filter(self, img: np.ndarray, filter: dict) -> dict:
