@@ -49,8 +49,10 @@ class Draw:
         img: np.ndarray,
         origin: tuple,
         text: str,
-        font_size: float = 0.5,
+        font: int = cv2.FONT_HERSHEY_SIMPLEX,
+        font_scale: float = 0.5,
         color: tuple = (255, 255, 255),
+        thickness: int = 2,
     ) -> np.ndarray:
         """
         Draw text on the image
@@ -73,12 +75,9 @@ class Draw:
         np.ndarray
             Image with the text drawn
         """
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = font_size
-        line_type = 2
 
         return cv2.putText(
-            img, text, origin, font, font_scale, color, line_type, cv2.LINE_AA
+            img, text, origin, font, font_scale, color, thickness, cv2.LINE_AA
         )
 
     @staticmethod
@@ -247,6 +246,36 @@ class Draw:
         return np.array(img)
 
     @staticmethod
+    def rounded_rectangle(
+        img: np.ndarray, rectangle: tuple, color: tuple, radius: int = 15
+    ) -> np.ndarray:
+        """
+        Draw a rounded rectangle on the image
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image
+        rectangle : tuple
+            Rectangle to draw ( (xmin, ymin), (xmax, ymax) )
+        color : tuple
+            Color of the rectangle (BGR)
+        radius : int, optional
+            Radius of the corners, by default 15
+
+        Returns
+        -------
+        np.ndarray
+            Image with the rounded rectangle drawn
+        """
+
+        overlay = img.copy()
+        overlay = PIL.Image.fromarray(img)
+        draw = PIL.ImageDraw.Draw(overlay, "RGBA")
+        draw.rounded_rectangle(rectangle, radius, fill=color)
+        return np.array(overlay)
+
+    @staticmethod
     def half_rounded_rectangle(
         img: np.ndarray,
         rectangle: tuple,
@@ -306,3 +335,36 @@ class Draw:
                 fill=color,
             )
         return np.array(overlay)
+
+    @staticmethod
+    def text_in_middle_rectangle(
+        img: np.ndarray,
+        rectangle: tuple,
+        text: str,
+        font: int = cv2.FONT_HERSHEY_SIMPLEX,
+        font_scale=0.8,
+        color=(255, 255, 255),
+        thickness: int = 2,
+    ) -> np.ndarray:
+
+        text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
+
+        half_rectangle = [
+            (rectangle[0][0] + rectangle[1][0]) / 2,
+            (rectangle[0][1] + rectangle[1][1]) / 2,
+        ]
+
+        text_x = int(half_rectangle[0] - text_size[0] / 2)
+        text_y = int(half_rectangle[1] + text_size[1] / 2)
+
+        img = Draw.draw_text(
+            img=img,
+            text=text,
+            origin=(text_x, text_y),
+            font=cv2.FONT_HERSHEY_SIMPLEX,
+            font_scale=0.8,
+            color=color,
+            thickness=2,
+        )
+
+        return img

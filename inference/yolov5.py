@@ -27,7 +27,7 @@ class YoloV5(BaseDetector):
             self.model = torch.hub.load("ultralytics/yolov5", "custom", path=model_path)
         else:
             self.model = torch.hub.load(
-                "ultralytics/yolov5", "yolov5m", pretrained=True
+                "ultralytics/yolov5", "yolov5x", pretrained=True
             )
 
     def predict(self, input_image: List[np.ndarray]) -> pd.DataFrame:

@@ -172,6 +172,37 @@ class Match:
             left=True,
         )
 
+        # Draw home text
+        if ratio > 0.15:
+            home_text = (
+                f"{int(self.home.get_percentage_possession(self.duration) * 100)}%"
+            )
+
+            new_frame = Draw.text_in_middle_rectangle(
+                img=new_frame,
+                rectangle=left_rectangle,
+                text=home_text,
+                font=cv2.FONT_HERSHEY_SIMPLEX,
+                font_scale=0.8,
+                color=(255, 255, 255),
+                thickness=2,
+            )
+
+        # Draw away text
+        if ratio < 0.85:
+            away_text = (
+                f"{int(self.away.get_percentage_possession(self.duration) * 100)}%"
+            )
+            new_frame = Draw.text_in_middle_rectangle(
+                img=new_frame,
+                rectangle=right_rectangle,
+                text=away_text,
+                font=cv2.FONT_HERSHEY_SIMPLEX,
+                font_scale=0.8,
+                color=(255, 255, 255),
+                thickness=2,
+            )
+
         return new_frame
 
     def draw_home_counter(self, frame: np.ndarray, origin: tuple) -> np.ndarray:
@@ -243,7 +274,7 @@ class Match:
             img=frame,
             origin=home_abbreviation_text_begin,
             text=self.home.abbreviation,
-            font_size=0.8,
+            font_scale=0.8,
             color=(85, 80, 82),
         )
 
@@ -255,7 +286,7 @@ class Match:
             img=frame,
             origin=home_time_text_begin,
             text=self.home.get_time_possession(self.fps),
-            font_size=0.8,
+            font_scale=0.8,
             color=(255, 255, 255),
         )
 
@@ -335,7 +366,7 @@ class Match:
             img=frame,
             origin=away_abbreviation_text_begin,
             text=self.away.abbreviation,
-            font_size=0.8,
+            font_scale=0.8,
             color=(85, 80, 82),
         )
 
@@ -347,7 +378,7 @@ class Match:
             img=frame,
             origin=away_time_text_begin,
             text=self.away.get_time_possession(self.fps),
-            font_size=0.8,
+            font_scale=0.8,
             color=(255, 255, 255),
         )
 
@@ -371,11 +402,56 @@ class Match:
         """
 
         tryo_logo = PIL.Image.open("./images/tryo_logo.png").convert("RGBA")
+
+        # Convert RGBA to BGRA
+        tryo_logo = np.array(tryo_logo)
+        red, green, blue, alpha = tryo_logo.T
+        tryo_logo = np.array([blue, green, red, alpha])
+        tryo_logo = tryo_logo.transpose()
+        tryo_logo = PIL.Image.fromarray(tryo_logo)
+
         tryo_logo = tryo_logo.resize((70, 70))
-        tryo_logo = tryo_logo.convert("L")
         pil_frame = PIL.Image.fromarray(frame)
         pil_frame.paste(tryo_logo, origin, tryo_logo)
         return np.array(pil_frame)
+
+    def draw_title(self, frame: np.ndarray, origin: tuple) -> np.ndarray:
+        """
+        Draw title
+
+        Parameters
+        ----------
+        frame : np.ndarray
+            Frame
+        origin : tuple
+            Origin (x, y)
+
+        Returns
+        -------
+        np.ndarray
+            Frame with title
+        """
+
+        width = 370
+        height = 30
+
+        rectangle = (origin, (origin[0] + width, origin[1] + height))
+
+        frame = Draw.rounded_rectangle(
+            img=frame,
+            rectangle=rectangle,
+            radius=20,
+            color=(255, 255, 255),
+        )
+
+        frame = Draw.text_in_middle_rectangle(
+            img=frame,
+            rectangle=rectangle,
+            text="Ball Possession",
+            font_scale=0.8,
+            color=(85, 80, 82),
+        )
+        return frame
 
     def draw(self, frame: np.ndarray, debug: bool = False) -> np.ndarray:
         """
@@ -395,9 +471,10 @@ class Match:
             Frame with elements of the match
         """
         frame_width = frame.shape[1]
+        frame = self.draw_title(frame=frame, origin=(frame_width - 500 - 7, 90))
         frame = self.draw_home_counter(frame, origin=(frame_width - 500, 140))
         frame = self.draw_away_counter(frame, origin=(frame_width - 300, 140))
-        frame = self.add_tryolabs_logo(frame, origin=(frame_width - 362, 55))
+        frame = self.add_tryolabs_logo(frame, origin=(frame_width - 362, 12))
         frame = self.possession_bar(frame, origin=(frame_width - 507, 195))
 
         if self.closest_player:

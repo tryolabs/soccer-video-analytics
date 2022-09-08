@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import cv2
 import norfair
@@ -25,8 +25,11 @@ def get_player_detections(
     person_df = person_detector.predict(frame)
     person_df = person_df[person_df["name"] == "person"]
     person_df = person_df[person_df["confidence"] > 0.5]
-    person_df = classifier.predict_from_df(df=person_df, img=frame)
-    return Converter.DataFrame_to_Detections(person_df)
+    person_detections = Converter.DataFrame_to_Detections(person_df)
+    return person_detections
+    # return classifier.predict_from_detections(detections=person_detections, img=frame)
+    # person_df = classifier.predict_from_df(df=person_df, img=frame)
+    # return Converter.DataFrame_to_Detections(person_df)
 
 
 def create_mask(frame: np.ndarray, detections: List[norfair.Detection]) -> np.ndarray:
@@ -86,3 +89,68 @@ def get_main_ball(detections: List[Detection], match: Match = None) -> Ball:
         ball.set_color(match)
 
     return ball
+
+
+players_teams = {}
+classification_counter = 40
+
+
+def should_classify(detection: Detection) -> bool:
+    return True
+
+    # if detection.data["id"] not in players_teams:
+    #     return True
+    # elif len(players_teams[detection.data["id"]]) < classification_counter:
+    #     return True
+    # else:
+    #     return False
+
+
+def add_window_classification(detection: Detection):
+    global players_teams
+    if detection.data["id"] not in players_teams:
+        players_teams[detection.data["id"]] = [detection.data["classification"]]
+    elif len(players_teams[detection.data["id"]]) < classification_counter:
+        players_teams[detection.data["id"]].append(detection.data["classification"])
+    elif len(players_teams[detection.data["id"]]) == classification_counter:
+        players_teams[detection.data["id"]].pop(0)
+        players_teams[detection.data["id"]].append(detection.data["classification"])
+
+
+def add_first_n_classification(detection: Detection):
+    global players_teams
+
+    if detection.data["id"] not in players_teams:
+        players_teams[detection.data["id"]] = [detection.data["classification"]]
+    elif len(players_teams[detection.data["id"]]) < classification_counter:
+        players_teams[detection.data["id"]].append(detection.data["classification"])
+
+
+def add_new_clasifications_to_players_teams(detections: List[Detection]):
+    global players_teams
+
+    for detection in detections:
+        add_window_classification(detection)
+        # add_first_n_classification(detection)
+
+
+def set_detections_classification(detections: List[Detection]):
+    global players_teams
+    for detection in detections:
+        previous_classifications = players_teams[detection.data["id"]]
+        detection.data["classification"] = max(
+            set(previous_classifications), key=previous_classifications.count
+        )
+
+
+def classify_city_gk(detections: List[Detection]):
+    referee_detections = [
+        detection
+        for detection in detections
+        if detection.data["classification"] == "Referee"
+    ]
+
+    if len(referee_detections) == 2:
+        # get the detection at the left
+        city_gk_detection = min(referee_detections, key=lambda x: x.points[0])
+        city_gk_detection.data["classification"] = "Man City"
