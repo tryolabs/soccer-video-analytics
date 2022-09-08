@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+import norfair
 import numpy as np
 import pandas as pd
 
@@ -70,3 +71,40 @@ class BaseClassifier(ABC):
         df["classification"] = class_name
 
         return df
+
+    def predict_from_detections(
+        self, detections: List[norfair.Detection], img: np.ndarray
+    ) -> List[norfair.Detection]:
+        """
+        Predicts the class of the objects in the image and adds the class in
+        detection.data["classification"]
+
+        Parameters
+        ----------
+        detections : List[norfair.Detection]
+            List of detections
+        img : np.ndarray
+            Image
+
+        Returns
+        -------
+        List[norfair.Detection]
+            List of detections with the class of the objects
+        """
+        if not all(
+            isinstance(detection, norfair.Detection) for detection in detections
+        ):
+            raise TypeError("detections must be a list of norfair.Detection")
+
+        box_images = []
+
+        for detection in detections:
+            box = Box(detection.points[0], detection.points[1], img)
+            box_images.append(box.img)
+
+        class_name = self.predict(box_images)
+
+        for detection, name in zip(detections, class_name):
+            detection.data["classification"] = name
+
+        return detections
