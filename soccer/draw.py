@@ -1,9 +1,9 @@
-from typing import Union
+import random
+from typing import List, Union
 
 import cv2
 import norfair
 import numpy as np
-import pandas as pd
 import PIL
 
 
@@ -368,3 +368,169 @@ class Draw:
         )
 
         return img
+
+
+class BallPoint:
+    def __init__(
+        self, id: int, point: tuple, color: tuple = (255, 255, 255), alpha: float = 1
+    ):
+        self.id = id
+        self.point = point
+        self.color = color
+        self.alpha = alpha
+
+    def __str__(self) -> str:
+        return str(self.id)
+
+
+class AbsolutePath:
+    def __init__(self) -> None:
+        self.past_points = []
+
+    def center(self, points: np.ndarray) -> tuple:
+        return (
+            int((points[0][0] + points[1][0]) / 2),
+            int((points[0][1] + points[1][1]) / 2),
+        )
+
+    def draw_path_with_pil_slow(
+        self,
+        img: np.ndarray,
+        path: List[BallPoint],
+        color: tuple = (255, 255, 255),
+        thickness: int = 4,
+    ) -> np.ndarray:
+        """
+        Draw a path with PIL
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image
+        path : list
+            List of points
+        color : tuple, optional
+            Color of the path, by default (255, 255, 255)
+        thickness : int, optional
+            Thickness of the path, by default 2
+
+        Returns
+        -------
+        np.ndarray
+            Image with the path drawn
+        """
+        img = PIL.Image.fromarray(img)
+        draw = PIL.ImageDraw.Draw(img, "RGBA")
+        for i in range(len(path) - 1):
+            color_with_alpha = tuple(
+                [color[0], color[1], color[2], int(path[i].alpha * 255)]
+            )
+            draw.line(
+                [path[i].point, path[i + 1].point],
+                fill=color_with_alpha,
+                width=thickness,
+            )
+        return np.array(img)
+
+    def draw_path_with_pil_fast(
+        self, img: np.ndarray, path: List[tuple], color: tuple
+    ) -> np.ndarray:
+
+        img = PIL.Image.fromarray(img)
+        draw = PIL.ImageDraw.Draw(img)
+
+        draw.line(
+            path,
+            fill=color,
+            width=2,
+        )
+
+        return np.array(img)
+
+    def draw_path_with_cv2_fast(
+        self, img: np.ndarray, path: List[tuple], color: tuple
+    ) -> np.ndarray:
+        return cv2.polylines(img, [np.array(path)], False, color, 2)
+
+    def draw_path_with_cv2_slow(
+        self, img: np.ndarray, ball_path: List[BallPoint], color: tuple
+    ) -> np.ndarray:
+
+        # return img
+
+        overlay = img.copy()
+
+        for j, ball_point in enumerate(ball_path):
+
+            if j > 0:
+                previous_point = ball_path[j - 1].point
+                point = ball_point.point
+
+                cv2.line(
+                    overlay,
+                    previous_point,
+                    point,
+                    color=color,
+                    thickness=2,
+                )
+
+            img = cv2.addWeighted(
+                overlay, ball_point.alpha, img, 1 - ball_point.alpha, 0
+            )
+
+        return img
+
+    def add_new_point(self, detection: norfair.Detection) -> None:
+
+        if detection is None:
+            return
+
+        self.past_points.insert(0, detection.absolute_points)
+
+    def draw(
+        self,
+        img: np.ndarray,
+        detection: norfair.Detection,
+        coord_transformations,
+        alpha: float = 0.5,
+        color: tuple = (255, 255, 255),
+    ) -> np.ndarray:
+
+        self.add_new_point(detection=detection)
+
+        if len(self.past_points) < 2:
+            return img
+
+        path = [
+            self.center(coord_transformations.abs_to_rel(past_point))
+            for past_point in self.past_points
+        ]
+
+        # random between 0 and 1
+        # alpha = random.random()
+        # (len(path) - i) / len(path))
+        ball_path = []
+        # alpha = 1
+        for i, point in enumerate(path):
+            alpha = (len(path) - i) / len(path)
+            ball_path.append(BallPoint(id=i, point=point, alpha=alpha))
+            # alpha *= 0.994
+
+        # ball_path = [
+        #     BallPoint(id=i, point=point, alpha=)
+        #     for i, point in enumerate(path)
+        # ]
+
+        margin = 150
+        ball_path = [
+            ball_point
+            for ball_point in ball_path
+            if ball_point.point[0] > 0 - margin
+            and ball_point.point[1] > 0 - margin
+            and ball_point.point[0] < img.shape[1] + margin
+            and ball_point.point[1] < img.shape[0] + margin
+        ]
+
+        # return self.draw_path_with_pil_fast(img, path, color=(255, 255, 255, 120))
+        # return self.draw_path_with_cv2_slow(img, ball_path, color=(255, 255, 255))
+        return self.draw_path_with_pil_slow(img, ball_path, color=(255, 255, 255))
