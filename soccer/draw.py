@@ -312,7 +312,7 @@ class Draw:
         draw.rounded_rectangle(rectangle, radius, fill=color)
 
         height = rectangle[1][1] - rectangle[0][1]
-        stop_width = 15
+        stop_width = 13
 
         if left:
             draw.rectangle(
@@ -339,53 +339,114 @@ class Draw:
     @staticmethod
     def text_in_middle_rectangle(
         img: np.ndarray,
-        rectangle: tuple,
+        origin: tuple,
+        width: int,
+        height: int,
         text: str,
-        font: int = cv2.FONT_HERSHEY_SIMPLEX,
-        font_scale=0.8,
+        font: PIL.ImageFont = None,
         color=(255, 255, 255),
-        thickness: int = 2,
     ) -> np.ndarray:
 
-        text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
+        # convert to pil
+        pil_img = PIL.Image.fromarray(img)
+        draw = PIL.ImageDraw.Draw(pil_img)
 
-        half_rectangle = [
-            (rectangle[0][0] + rectangle[1][0]) / 2,
-            (rectangle[0][1] + rectangle[1][1]) / 2,
-        ]
+        if font is None:
+            # font = PIL.ImageFont.truetype("Gibson-Regular.ttf", size=24)
+            font = PIL.ImageFont.truetype("Gidole-Regular.ttf", size=24)
+            # font = PIL.ImageFont.truetype("gibson-bold.ttf", size=14)
 
-        text_x = int(half_rectangle[0] - text_size[0] / 2)
-        text_y = int(half_rectangle[1] + text_size[1] / 2)
-
-        img = Draw.draw_text(
-            img=img,
-            text=text,
-            origin=(text_x, text_y),
-            font=cv2.FONT_HERSHEY_SIMPLEX,
-            font_scale=0.8,
-            color=color,
-            thickness=2,
+        w, h = draw.textsize(text, font=font)
+        text_origin = (
+            origin[0] + width / 2 - w / 2,
+            origin[1] + height / 2 - h / 2,
+        )
+        draw.text(
+            text_origin,
+            text,
+            font=font,
         )
 
+        draw.text(text_origin, text, font=font, fill=color)
+
+        return np.array(pil_img)
+
+    # PIl image class
+
+    @staticmethod
+    def add_alpha(img: PIL.Image.Image, alpha: int = 100) -> PIL.Image.Image:
+        """
+        Add an alpha channel to an image
+
+        Parameters
+        ----------
+        img : PIL.Image.Image
+            Image
+        alpha : int, optional
+            Alpha value, by default 100
+
+        Returns
+        -------
+        PIL.Image.Image
+            Image with alpha channel
+        """
+        data = img.getdata()  # you'll get a list of tuples
+        newData = []
+        for old_pixel in data:
+
+            if old_pixel[3] != 0:
+                # change the 100 to any transparency number you like between (0,255)
+                pixel_with_alpha = old_pixel[:3] + (alpha,)
+                newData.append(pixel_with_alpha)
+            else:
+                newData.append(old_pixel)
+
+        img.putdata(newData)  # you'll get your new img ready
         return img
 
 
-class BallPoint:
+class PathPoint:
     def __init__(
-        self, id: int, point: tuple, color: tuple = (255, 255, 255), alpha: float = 1
+        self, id: int, center: tuple, color: tuple = (255, 255, 255), alpha: float = 1
     ):
         self.id = id
-        self.point = point
+        self.center = center
         self.color = color
         self.alpha = alpha
 
     def __str__(self) -> str:
         return str(self.id)
 
+    @property
+    def color_with_alpha(self) -> tuple:
+        return (self.color[0], self.color[1], self.color[2], int(self.alpha * 255))
+
+    @staticmethod
+    def get_center_from_bounding_box(bounding_box: np.ndarray) -> tuple:
+        return (
+            int((bounding_box[0][0] + bounding_box[1][0]) / 2),
+            int((bounding_box[0][1] + bounding_box[1][1]) / 2),
+        )
+
+    @staticmethod
+    def from_abs_bbox(
+        id: int,
+        abs_point: np.ndarray,
+        coord_transformations,
+        color: tuple = None,
+        alpha: float = None,
+    ) -> "PathPoint":
+
+        rel_point = coord_transformations.abs_to_rel(abs_point)
+        center = PathPoint.get_center_from_bounding_box(rel_point)
+
+        return PathPoint(id=id, center=center, color=color, alpha=alpha)
+
 
 class AbsolutePath:
     def __init__(self) -> None:
         self.past_points = []
+        self.color_by_index = {}
 
     def center(self, points: np.ndarray) -> tuple:
         return (
@@ -393,11 +454,14 @@ class AbsolutePath:
             int((points[0][1] + points[1][1]) / 2),
         )
 
-    def draw_path_with_pil_slow(
+    @property
+    def path_length(self) -> int:
+        return len(self.past_points)
+
+    def draw_path_slow(
         self,
         img: np.ndarray,
-        path: List[BallPoint],
-        color: tuple = (255, 255, 255),
+        path: List[PathPoint],
         thickness: int = 4,
     ) -> np.ndarray:
         """
@@ -407,8 +471,8 @@ class AbsolutePath:
         ----------
         img : np.ndarray
             Image
-        path : list
-            List of points
+        path : List[PathPoint]
+            List of points to draw
         color : tuple, optional
             Color of the path, by default (255, 255, 255)
         thickness : int, optional
@@ -421,71 +485,134 @@ class AbsolutePath:
         """
         img = PIL.Image.fromarray(img)
         draw = PIL.ImageDraw.Draw(img, "RGBA")
+
         for i in range(len(path) - 1):
-            color_with_alpha = tuple(
-                [color[0], color[1], color[2], int(path[i].alpha * 255)]
-            )
             draw.line(
-                [path[i].point, path[i + 1].point],
-                fill=color_with_alpha,
+                [path[i].center, path[i + 1].center],
+                fill=path[i].color_with_alpha,
                 width=thickness,
             )
         return np.array(img)
 
-    def draw_path_with_pil_fast(
-        self, img: np.ndarray, path: List[tuple], color: tuple
+    def draw_arrow_head(
+        self,
+        img: np.ndarray,
+        start: tuple,
+        end: tuple,
+        color: tuple = (255, 255, 255),
+        length: int = 10,
+        height: int = 6,
+        thickness: int = 4,
+    ) -> np.ndarray:
+
+        # https://stackoverflow.com/questions/43527894/drawing-arrowheads-which-follow-the-direction-of-the-line-in-pygame
+
+        img = PIL.Image.fromarray(img)
+        draw = PIL.ImageDraw.Draw(img, "RGBA")
+
+        dX = end[0] - start[0]
+        dY = end[1] - start[1]
+
+        # vector length
+        Len = np.sqrt(dX * dX + dY * dY)  # use Hypot if available
+
+        # normalized direction vector components
+        udX = dX / Len
+        udY = dY / Len
+
+        # perpendicular vector
+        perpX = -udY
+        perpY = udX
+
+        # points forming arrowhead
+        # with length L and half-width H
+        arrowend = end
+
+        leftX = end[0] - length * udX + height * perpX
+        leftY = end[1] - length * udY + height * perpY
+
+        rightX = end[0] - length * udX - height * perpX
+        rightY = end[1] - length * udY - height * perpY
+
+        draw.line(
+            [(leftX, leftY), arrowend],
+            fill=color,
+            width=thickness,
+        )
+
+        draw.line(
+            [(rightX, rightY), arrowend],
+            fill=color,
+            width=thickness,
+        )
+
+        return np.array(img)
+
+    def draw_path_arrows(
+        self,
+        img: np.ndarray,
+        path: List[PathPoint],
+        thickness: int = 4,
+    ) -> np.ndarray:
+
+        for i, point in enumerate(path):
+
+            if i < 4 or i % 30 != 0:
+                continue
+
+            end = path[i]
+            start = path[i - 4]
+
+            img = self.draw_arrow_head(
+                img=img,
+                start=start.center,
+                end=end.center,
+                color=start.color_with_alpha,
+                thickness=thickness,
+            )
+
+        return img
+
+    def draw_path_fast(
+        self, img: np.ndarray, path: List[PathPoint], color: tuple
     ) -> np.ndarray:
 
         img = PIL.Image.fromarray(img)
         draw = PIL.ImageDraw.Draw(img)
 
+        path_list = [point.center for point in path]
+
         draw.line(
-            path,
+            path_list,
             fill=color,
             width=2,
         )
 
         return np.array(img)
 
-    def draw_path_with_cv2_fast(
-        self, img: np.ndarray, path: List[tuple], color: tuple
-    ) -> np.ndarray:
-        return cv2.polylines(img, [np.array(path)], False, color, 2)
-
-    def draw_path_with_cv2_slow(
-        self, img: np.ndarray, ball_path: List[BallPoint], color: tuple
-    ) -> np.ndarray:
-
-        # return img
-
-        overlay = img.copy()
-
-        for j, ball_point in enumerate(ball_path):
-
-            if j > 0:
-                previous_point = ball_path[j - 1].point
-                point = ball_point.point
-
-                cv2.line(
-                    overlay,
-                    previous_point,
-                    point,
-                    color=color,
-                    thickness=2,
-                )
-
-            img = cv2.addWeighted(
-                overlay, ball_point.alpha, img, 1 - ball_point.alpha, 0
-            )
-
-        return img
-
-    def add_new_point(self, detection: norfair.Detection) -> None:
+    def add_new_point(
+        self, detection: norfair.Detection, color: tuple = (255, 255, 255)
+    ) -> None:
 
         if detection is None:
             return
 
-        self.past_points.insert(0, detection.absolute_points)
+        self.past_points.append(detection.absolute_points)
+
+        self.color_by_index[len(self.past_points) - 1] = color
+
+    def filter_points_outside_frame(
+        self, path: List[PathPoint], width: int, height: int, margin: int = 0
+    ) -> List[PathPoint]:
+
+        return [
+            point
+            for point in path
+            if point.center[0] > 0 - margin
+            and point.center[1] > 0 - margin
+            and point.center[0] < width + margin
+            and point.center[1] < height + margin
+        ]
 
     def draw(
         self,
@@ -496,41 +623,30 @@ class AbsolutePath:
         color: tuple = (255, 255, 255),
     ) -> np.ndarray:
 
-        self.add_new_point(detection=detection)
+        self.add_new_point(detection=detection, color=color)
 
         if len(self.past_points) < 2:
             return img
 
         path = [
-            self.center(coord_transformations.abs_to_rel(past_point))
-            for past_point in self.past_points
+            PathPoint.from_abs_bbox(
+                id=i,
+                abs_point=point,
+                coord_transformations=coord_transformations,
+                alpha=i / (1.2 * self.path_length),
+                color=self.color_by_index[i],
+            )
+            for i, point in enumerate(self.past_points)
         ]
 
-        # random between 0 and 1
-        # alpha = random.random()
-        # (len(path) - i) / len(path))
-        ball_path = []
-        # alpha = 1
-        for i, point in enumerate(path):
-            alpha = (len(path) - i) / len(path)
-            ball_path.append(BallPoint(id=i, point=point, alpha=alpha))
-            # alpha *= 0.994
+        path_filtered = self.filter_points_outside_frame(
+            path=path,
+            width=img.shape[1],
+            height=img.shape[0],
+            margin=250,
+        )
 
-        # ball_path = [
-        #     BallPoint(id=i, point=point, alpha=)
-        #     for i, point in enumerate(path)
-        # ]
+        img = self.draw_path_slow(img=img, path=path_filtered)
+        img = self.draw_path_arrows(img=img, path=path)
 
-        margin = 150
-        ball_path = [
-            ball_point
-            for ball_point in ball_path
-            if ball_point.point[0] > 0 - margin
-            and ball_point.point[1] > 0 - margin
-            and ball_point.point[0] < img.shape[1] + margin
-            and ball_point.point[1] < img.shape[0] + margin
-        ]
-
-        # return self.draw_path_with_pil_fast(img, path, color=(255, 255, 255, 120))
-        # return self.draw_path_with_cv2_slow(img, ball_path, color=(255, 255, 255))
-        return self.draw_path_with_pil_slow(img, ball_path, color=(255, 255, 255))
+        return img

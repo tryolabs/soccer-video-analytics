@@ -2,7 +2,14 @@ from typing import List
 
 
 class Team:
-    def __init__(self, name: str, color: tuple = (0, 0, 0), abbreviation: str = "NNN"):
+    def __init__(
+        self,
+        name: str,
+        color: tuple = (0, 0, 0),
+        abbreviation: str = "NNN",
+        board_color: tuple = None,
+        text_color: tuple = (0, 0, 0),
+    ):
         """
         Initialize Team
 
@@ -24,6 +31,12 @@ class Team:
         self.possession = 0
         self.color = color
         self.abbreviation = abbreviation
+        self.text_color = text_color
+
+        if board_color is None:
+            self.board_color = color
+        else:
+            self.board_color = board_color
 
         if len(abbreviation) != 3 or not abbreviation.isupper():
             raise ValueError("abbreviation must be length 3 and uppercase")

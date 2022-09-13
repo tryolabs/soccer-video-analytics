@@ -49,8 +49,14 @@ hsv_classifier = HSVClassifier(filters=filters)
 classifier = InertiaClassifier(classifier=hsv_classifier, inertia=20)
 
 # Teams and Match
-man_city = Team(name="Man City", abbreviation="MNC", color=(235, 206, 135))
-chelsea = Team(name="Chelsea", abbreviation="CHE", color=(255, 0, 0))
+man_city = Team(name="Man City", abbreviation="MNC", color=(240, 230, 188))
+chelsea = Team(
+    name="Chelsea",
+    abbreviation="CHE",
+    color=(255, 0, 0),
+    board_color=(244, 86, 64),
+    text_color=(255, 255, 255),
+)
 teams = [man_city, chelsea]
 match = Match(home=chelsea, away=man_city)
 match.team_possession = man_city
@@ -132,6 +138,7 @@ for i, frame in enumerate(video):
         img=frame,
         detection=ball_detection,
         coord_transformations=coord_transformations,
+        color=match.team_possession.color,
     )
 
     # frame = Player.draw_players(players=players, frame=frame, confidence=False)

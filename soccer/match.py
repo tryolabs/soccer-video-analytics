@@ -134,8 +134,8 @@ class Match:
 
         bar_x = origin[0]
         bar_y = origin[1]
-        bar_height = 30
-        bar_width = 367
+        bar_height = 29
+        bar_width = 310
 
         ratio = self.home.get_percentage_possession(self.duration)
 
@@ -147,30 +147,53 @@ class Match:
 
         left_rectangle = (
             origin,
-            [int(bar_x + ratio * bar_width), bar_y + bar_height],
-        )
-
-        left_color = self.home.color
-
-        new_frame = Draw.half_rounded_rectangle(
-            frame,
-            rectangle=left_rectangle,
-            color=left_color,
+            [int(bar_x + ratio * bar_width), int(bar_y + bar_height)],
         )
 
         right_rectangle = (
             [int(bar_x + ratio * bar_width), bar_y],
-            [bar_x + bar_width, bar_y + bar_height],
+            [int(bar_x + bar_width), int(bar_y + bar_height)],
         )
 
-        right_color = self.away.color
+        left_color = self.home.board_color
+        right_color = self.away.board_color
 
-        new_frame = Draw.half_rounded_rectangle(
-            new_frame,
-            rectangle=right_rectangle,
-            color=right_color,
-            left=True,
-        )
+        # Draw first one rectangle or another in orther to make the
+        # rectangle bigger for better rounded corners
+        if ratio < 0.15:
+            left_rectangle[1][0] += 20
+
+            frame = Draw.half_rounded_rectangle(
+                frame,
+                rectangle=left_rectangle,
+                color=left_color,
+                radius=15,
+            )
+
+            frame = Draw.half_rounded_rectangle(
+                frame,
+                rectangle=right_rectangle,
+                color=right_color,
+                left=True,
+                radius=15,
+            )
+        else:
+            right_rectangle[0][0] -= 20
+
+            frame = Draw.half_rounded_rectangle(
+                frame,
+                rectangle=right_rectangle,
+                color=right_color,
+                left=True,
+                radius=15,
+            )
+
+            frame = Draw.half_rounded_rectangle(
+                frame,
+                rectangle=left_rectangle,
+                color=left_color,
+                radius=15,
+            )
 
         # Draw home text
         if ratio > 0.15:
@@ -178,14 +201,13 @@ class Match:
                 f"{int(self.home.get_percentage_possession(self.duration) * 100)}%"
             )
 
-            new_frame = Draw.text_in_middle_rectangle(
-                img=new_frame,
-                rectangle=left_rectangle,
+            frame = Draw.text_in_middle_rectangle(
+                img=frame,
+                origin=left_rectangle[0],
+                width=left_rectangle[1][0] - left_rectangle[0][0],
+                height=left_rectangle[1][1] - left_rectangle[0][1],
                 text=home_text,
-                font=cv2.FONT_HERSHEY_SIMPLEX,
-                font_scale=0.8,
-                color=(255, 255, 255),
-                thickness=2,
+                color=self.home.text_color,
             )
 
         # Draw away text
@@ -193,17 +215,16 @@ class Match:
             away_text = (
                 f"{int(self.away.get_percentage_possession(self.duration) * 100)}%"
             )
-            new_frame = Draw.text_in_middle_rectangle(
-                img=new_frame,
-                rectangle=right_rectangle,
+            frame = Draw.text_in_middle_rectangle(
+                img=frame,
+                origin=right_rectangle[0],
+                width=right_rectangle[1][0] - right_rectangle[0][0],
+                height=right_rectangle[1][1] - right_rectangle[0][1],
                 text=away_text,
-                font=cv2.FONT_HERSHEY_SIMPLEX,
-                font_scale=0.8,
-                color=(255, 255, 255),
-                thickness=2,
+                color=self.away.text_color,
             )
 
-        return new_frame
+        return frame
 
     def draw_home_counter(self, frame: np.ndarray, origin: tuple) -> np.ndarray:
         """
@@ -384,73 +405,83 @@ class Match:
 
         return frame
 
-    def add_tryolabs_logo(self, frame: np.ndarray, origin: tuple) -> np.ndarray:
-        """
-        Inserts tryolabs logo into image with PNG transparency
+    def draw_counter_background(self, frame: np.ndarray, origin: tuple) -> np.ndarray:
 
-        Parameters
-        ----------
-        frame : np.ndarray
-            Frame
-        origin : tuple
-            Origin (x, y)
-
-        Returns
-        -------
-        np.ndarray
-            Frame with tryolabs logo
-        """
-
-        tryo_logo = PIL.Image.open("./images/tryo_logo.png").convert("RGBA")
-
-        # Convert RGBA to BGRA
-        tryo_logo = np.array(tryo_logo)
-        red, green, blue, alpha = tryo_logo.T
-        tryo_logo = np.array([blue, green, red, alpha])
-        tryo_logo = tryo_logo.transpose()
-        tryo_logo = PIL.Image.fromarray(tryo_logo)
-
-        tryo_logo = tryo_logo.resize((70, 70))
+        counter = PIL.Image.open("./images/board.png").convert("RGBA")
+        counter = Draw.add_alpha(counter, 210)
+        counter = np.array(counter)
+        red, green, blue, alpha = counter.T
+        counter = np.array([blue, green, red, alpha])
+        counter = counter.transpose()
+        counter = PIL.Image.fromarray(counter)
+        counter = counter.resize((int(315 * 1.2), int(210 * 1.2)))
+        # counter = counter.resize((315, 210))
         pil_frame = PIL.Image.fromarray(frame)
-        pil_frame.paste(tryo_logo, origin, tryo_logo)
+        pil_frame.paste(counter, origin, counter)
         return np.array(pil_frame)
 
-    def draw_title(self, frame: np.ndarray, origin: tuple) -> np.ndarray:
-        """
-        Draw title
+    def draw_counter(
+        self,
+        frame: np.ndarray,
+        text: str,
+        counter_text: str,
+        origin: tuple,
+        color: tuple,
+        text_color: tuple,
+        height: int = 27,
+        width: int = 120,
+    ) -> np.ndarray:
 
-        Parameters
-        ----------
-        frame : np.ndarray
-            Frame
-        origin : tuple
-            Origin (x, y)
+        team_begin = origin
+        team_width_ratio = 0.417
+        team_width = width * team_width_ratio
 
-        Returns
-        -------
-        np.ndarray
-            Frame with title
-        """
+        team_rectangle = (
+            team_begin,
+            (team_begin[0] + team_width, team_begin[1] + height),
+        )
 
-        width = 370
-        height = 30
+        time_begin = (origin[0] + team_width, origin[1])
+        time_width = width * (1 - team_width_ratio)
 
-        rectangle = (origin, (origin[0] + width, origin[1] + height))
+        time_rectangle = (
+            time_begin,
+            (time_begin[0] + time_width, time_begin[1] + height),
+        )
 
-        frame = Draw.rounded_rectangle(
+        frame = Draw.half_rounded_rectangle(
             img=frame,
-            rectangle=rectangle,
+            rectangle=team_rectangle,
+            color=color,
             radius=20,
-            color=(255, 255, 255),
+        )
+
+        frame = Draw.half_rounded_rectangle(
+            img=frame,
+            rectangle=time_rectangle,
+            color=(239, 234, 229),
+            radius=20,
+            left=True,
         )
 
         frame = Draw.text_in_middle_rectangle(
             img=frame,
-            rectangle=rectangle,
-            text="Ball Possession",
-            font_scale=0.8,
-            color=(85, 80, 82),
+            origin=team_rectangle[0],
+            height=height,
+            width=team_width,
+            text=text,
+            color=text_color,
         )
+
+        frame = Draw.text_in_middle_rectangle(
+            img=frame,
+            origin=time_rectangle[0],
+            height=height,
+            width=time_width,
+            text=counter_text,
+            color="black",
+        )
+
         return frame
 
     def draw(self, frame: np.ndarray, debug: bool = False) -> np.ndarray:
@@ -471,11 +502,31 @@ class Match:
             Frame with elements of the match
         """
         frame_width = frame.shape[1]
-        frame = self.draw_title(frame=frame, origin=(frame_width - 500 - 7, 90))
-        frame = self.draw_home_counter(frame, origin=(frame_width - 500, 140))
-        frame = self.draw_away_counter(frame, origin=(frame_width - 300, 140))
-        frame = self.add_tryolabs_logo(frame, origin=(frame_width - 362, 12))
-        frame = self.possession_bar(frame, origin=(frame_width - 507, 195))
+        counter_origin = (frame_width - 540, 40)
+        frame = self.draw_counter_background(frame, origin=counter_origin)
+        frame = self.draw_counter(
+            frame,
+            origin=(counter_origin[0] + 35, counter_origin[1] + 130),
+            text=self.home.abbreviation,
+            counter_text=self.home.get_time_possession(self.fps),
+            color=self.home.board_color,
+            text_color=self.home.text_color,
+            height=31,
+            width=150,
+        )
+        frame = self.draw_counter(
+            frame,
+            origin=(counter_origin[0] + 35 + 150 + 10, counter_origin[1] + 130),
+            text=self.away.abbreviation,
+            counter_text=self.away.get_time_possession(self.fps),
+            color=self.away.board_color,
+            text_color=self.away.text_color,
+            height=31,
+            width=150,
+        )
+        frame = self.possession_bar(
+            frame, origin=(counter_origin[0] + 35, counter_origin[1] + 195)
+        )
 
         if self.closest_player:
             frame = self.closest_player.draw_pointer(frame)

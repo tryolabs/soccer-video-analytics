@@ -15,8 +15,14 @@ hsv_classifier = HSVClassifier(filters=filters)
 person_detector = YoloV5()
 ball_detector = YoloV5(model_path="models/best.pt")
 
-man_city = Team(name="Man City", abbreviation="MNC", color=(255, 165, 0))
-chelsea = Team(name="Chelsea", abbreviation="CHE", color=(255, 0, 0))
+man_city = Team(name="Man City", abbreviation="MNC", color=(240, 230, 188))
+chelsea = Team(
+    name="Chelsea",
+    abbreviation="CHE",
+    color=(255, 0, 0),
+    board_color=(244, 86, 64),
+    text_color=(255, 255, 255),
+)
 teams = [man_city, chelsea]
 
 match = Match(home=chelsea, away=man_city)
