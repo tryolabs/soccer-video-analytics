@@ -346,15 +346,36 @@ class Draw:
         font: PIL.ImageFont = None,
         color=(255, 255, 255),
     ) -> np.ndarray:
+        """
+        Draw text in middle of rectangle
 
-        # convert to pil
+        Parameters
+        ----------
+        img : np.ndarray
+            Image
+        origin : tuple
+            Origin of the rectangle (x, y)
+        width : int
+            Width of the rectangle
+        height : int
+            Height of the rectangle
+        text : str
+            Text to draw
+        font : PIL.ImageFont, optional
+            Font to use, by default None
+        color : tuple, optional
+            Color of the text, by default (255, 255, 255)
+
+        Returns
+        -------
+        np.ndarray
+            Image with the text drawn
+        """
         pil_img = PIL.Image.fromarray(img)
         draw = PIL.ImageDraw.Draw(pil_img)
 
         if font is None:
-            # font = PIL.ImageFont.truetype("Gibson-Regular.ttf", size=24)
             font = PIL.ImageFont.truetype("Gidole-Regular.ttf", size=24)
-            # font = PIL.ImageFont.truetype("gibson-bold.ttf", size=14)
 
         w, h = draw.textsize(text, font=font)
         text_origin = (
@@ -370,8 +391,6 @@ class Draw:
         draw.text(text_origin, text, font=font, fill=color)
 
         return np.array(pil_img)
-
-    # PIl image class
 
     @staticmethod
     def add_alpha(img: PIL.Image.Image, alpha: int = 100) -> PIL.Image.Image:
@@ -436,6 +455,28 @@ class PathPoint:
         color: tuple = None,
         alpha: float = None,
     ) -> "PathPoint":
+        """
+        Create a PathPoint from an absolute bounding box.
+        It converts the absolute bounding box to a relative one and then to a center point
+
+        Parameters
+        ----------
+        id : int
+            Id of the point
+        abs_point : np.ndarray
+            Absolute bounding box
+        coord_transformations : _type_
+            Coordinate transformations
+        color : tuple, optional
+            Color of the point, by default None
+        alpha : float, optional
+            Alpha value of the point, by default None
+
+        Returns
+        -------
+        PathPoint
+            PathPoint
+        """
 
         rel_point = coord_transformations.abs_to_rel(abs_point)
         center = PathPoint.get_center_from_bounding_box(rel_point)
@@ -449,6 +490,19 @@ class AbsolutePath:
         self.color_by_index = {}
 
     def center(self, points: np.ndarray) -> tuple:
+        """
+        Get the center of a Norfair Bounding Box Detection point
+
+        Parameters
+        ----------
+        points : np.ndarray
+            Norfair Bounding Box Detection point
+
+        Returns
+        -------
+        tuple
+            Center of the point (x, y)
+        """
         return (
             int((points[0][0] + points[1][0]) / 2),
             int((points[0][1] + points[1][1]) / 2),
@@ -465,7 +519,7 @@ class AbsolutePath:
         thickness: int = 4,
     ) -> np.ndarray:
         """
-        Draw a path with PIL
+        Draw a path with alpha
 
         Parameters
         ----------
@@ -473,10 +527,8 @@ class AbsolutePath:
             Image
         path : List[PathPoint]
             List of points to draw
-        color : tuple, optional
-            Color of the path, by default (255, 255, 255)
         thickness : int, optional
-            Thickness of the path, by default 2
+            Thickness of the path, by default 4
 
         Returns
         -------
@@ -554,6 +606,23 @@ class AbsolutePath:
         path: List[PathPoint],
         thickness: int = 4,
     ) -> np.ndarray:
+        """
+        Draw a path with arrows every 30 points
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image
+        path : List[PathPoint]
+            Path
+        thickness : int, optional
+            Thickness of the path, by default 4
+
+        Returns
+        -------
+        np.ndarray
+            Image with the arrows drawn
+        """
 
         for i, point in enumerate(path):
 
@@ -576,6 +645,23 @@ class AbsolutePath:
     def draw_path_fast(
         self, img: np.ndarray, path: List[PathPoint], color: tuple
     ) -> np.ndarray:
+        """
+        Draw a path without alpha (faster)
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image
+        path : List[PathPoint]
+            Path
+        color : tuple
+            Color of the path
+
+        Returns
+        -------
+        np.ndarray
+            Image with the path drawn
+        """
 
         img = PIL.Image.fromarray(img)
         draw = PIL.ImageDraw.Draw(img)
@@ -593,6 +679,16 @@ class AbsolutePath:
     def add_new_point(
         self, detection: norfair.Detection, color: tuple = (255, 255, 255)
     ) -> None:
+        """
+        Add a new point to the path
+
+        Parameters
+        ----------
+        detection : norfair.Detection
+            Detection
+        color : tuple, optional
+            Color of the point, by default (255, 255, 255)
+        """
 
         if detection is None:
             return
@@ -604,6 +700,25 @@ class AbsolutePath:
     def filter_points_outside_frame(
         self, path: List[PathPoint], width: int, height: int, margin: int = 0
     ) -> List[PathPoint]:
+        """
+        Filter points outside the frame with a margin
+
+        Parameters
+        ----------
+        path : List[PathPoint]
+            List of points
+        width : int
+            Width of the frame
+        height : int
+            Height of the frame
+        margin : int, optional
+            Margin, by default 0
+
+        Returns
+        -------
+        List[PathPoint]
+            List of points inside the frame with the margin
+        """
 
         return [
             point
@@ -619,9 +734,27 @@ class AbsolutePath:
         img: np.ndarray,
         detection: norfair.Detection,
         coord_transformations,
-        alpha: float = 0.5,
         color: tuple = (255, 255, 255),
     ) -> np.ndarray:
+        """
+        Draw the path
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image
+        detection : norfair.Detection
+            Detection
+        coord_transformations : _type_
+            Coordinate transformations
+        color : tuple, optional
+            Color of the path, by default (255, 255, 255)
+
+        Returns
+        -------
+        np.ndarray
+            Image with the path drawn
+        """
 
         self.add_new_point(detection=detection, color=color)
 

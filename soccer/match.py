@@ -116,7 +116,6 @@ class Match:
 
     def possession_bar(self, frame: np.ndarray, origin: tuple) -> np.ndarray:
         """
-
         Draw possession bar
 
         Parameters
@@ -139,6 +138,7 @@ class Match:
 
         ratio = self.home.get_percentage_possession(self.duration)
 
+        # Protect against too small rectangles
         if ratio < 0.07:
             ratio = 0.07
 
@@ -226,186 +226,22 @@ class Match:
 
         return frame
 
-    def draw_home_counter(self, frame: np.ndarray, origin: tuple) -> np.ndarray:
-        """
-        Draw home counter
-
-        Parameters
-        ----------
-        frame : np.ndarray
-            Frame
-        origin : tuple
-            Origin (x, y)
-
-        Returns
-        -------
-        np.ndarray
-            Frame with home counter
-        """
-
-        # Draw rectangle with opencv with starting point and height and width
-        home_white_rectangle_begin = origin
-        white_rectangle_width = 70
-        height = 35
-
-        # White rectangle for team abbreviation
-        frame = Draw.draw_rectangle(
-            img=frame,
-            origin=home_white_rectangle_begin,
-            width=white_rectangle_width,
-            height=height,
-            color=(255, 255, 255),
-        )
-
-        # Color rectangle
-        color_rectangle_width = 7
-        home_color_rectangle_begin = (
-            home_white_rectangle_begin[0] - color_rectangle_width,
-            home_white_rectangle_begin[1],
-        )
-        frame = Draw.draw_rectangle(
-            img=frame,
-            origin=home_color_rectangle_begin,
-            width=color_rectangle_width,
-            height=height,
-            color=self.home.color,
-        )
-
-        # Red rectangle for time
-        red_rectangle_width = 85
-        home_red_rectangle_begin = (
-            home_white_rectangle_begin[0] + white_rectangle_width,
-            home_white_rectangle_begin[1],
-        )
-        frame = Draw.draw_rectangle(
-            img=frame,
-            origin=home_red_rectangle_begin,
-            width=red_rectangle_width,
-            height=height,
-            color=(52, 66, 53),
-        )
-
-        # Draw text
-        text_height = home_white_rectangle_begin[1] + 25
-        home_abbreviation_text_begin = (
-            home_white_rectangle_begin[0] + 5,
-            text_height,
-        )
-        frame = Draw.draw_text(
-            img=frame,
-            origin=home_abbreviation_text_begin,
-            text=self.home.abbreviation,
-            font_scale=0.8,
-            color=(85, 80, 82),
-        )
-
-        home_time_text_begin = (
-            home_red_rectangle_begin[0] + 5,
-            text_height,
-        )
-        frame = Draw.draw_text(
-            img=frame,
-            origin=home_time_text_begin,
-            text=self.home.get_time_possession(self.fps),
-            font_scale=0.8,
-            color=(255, 255, 255),
-        )
-
-        return frame
-
-    def draw_away_counter(self, frame: np.ndarray, origin: tuple) -> np.ndarray:
-        """
-        Draw away counter
-
-        Parameters
-        ----------
-        frame : np.ndarray
-            Frame
-        origin : tuple
-            Origin (x, y)
-
-        Returns
-        -------
-        np.ndarray
-            Frame with away counter
-        """
-
-        # Draw rectangle with opencv with starting point and height and width
-        away_white_rectangle_begin = origin
-        height = 35
-
-        # Red rectangle for time
-        red_rectangle_width = 85
-        away_red_rectangle_begin = (
-            away_white_rectangle_begin[0],
-            away_white_rectangle_begin[1],
-        )
-
-        frame = Draw.draw_rectangle(
-            img=frame,
-            origin=away_red_rectangle_begin,
-            width=red_rectangle_width,
-            height=height,
-            color=(52, 66, 53),
-        )
-
-        white_rectangle_width = 70
-        away_white_rectangle_begin = (
-            away_red_rectangle_begin[0] + red_rectangle_width,
-            away_red_rectangle_begin[1],
-        )
-        # White rectangle for team abbreviation
-        frame = Draw.draw_rectangle(
-            img=frame,
-            origin=away_white_rectangle_begin,
-            width=white_rectangle_width,
-            height=height,
-            color=(255, 255, 255),
-        )
-
-        # Color rectangle
-        color_rectangle_width = 7
-        away_color_rectangle_begin = (
-            away_white_rectangle_begin[0] + white_rectangle_width,
-            away_white_rectangle_begin[1],
-        )
-        frame = Draw.draw_rectangle(
-            img=frame,
-            origin=away_color_rectangle_begin,
-            width=color_rectangle_width,
-            height=height,
-            color=self.away.color,
-        )
-
-        # Draw text
-        text_height = away_white_rectangle_begin[1] + 25
-        away_abbreviation_text_begin = (
-            away_white_rectangle_begin[0] + 5,
-            text_height,
-        )
-        frame = Draw.draw_text(
-            img=frame,
-            origin=away_abbreviation_text_begin,
-            text=self.away.abbreviation,
-            font_scale=0.8,
-            color=(85, 80, 82),
-        )
-
-        away_time_text_begin = (
-            away_red_rectangle_begin[0] + 5,
-            text_height,
-        )
-        frame = Draw.draw_text(
-            img=frame,
-            origin=away_time_text_begin,
-            text=self.away.get_time_possession(self.fps),
-            font_scale=0.8,
-            color=(255, 255, 255),
-        )
-
-        return frame
-
     def draw_counter_background(self, frame: np.ndarray, origin: tuple) -> np.ndarray:
+        """
+        Draw counter background
+
+        Parameters
+        ----------
+        frame : np.ndarray
+            Frame
+        origin : tuple
+            Origin (x, y)
+
+        Returns
+        -------
+        np.ndarray
+            Frame with counter background
+        """
 
         counter = PIL.Image.open("./images/board.png").convert("RGBA")
         counter = Draw.add_alpha(counter, 210)
@@ -415,7 +251,6 @@ class Match:
         counter = counter.transpose()
         counter = PIL.Image.fromarray(counter)
         counter = counter.resize((int(315 * 1.2), int(210 * 1.2)))
-        # counter = counter.resize((315, 210))
         pil_frame = PIL.Image.fromarray(frame)
         pil_frame.paste(counter, origin, counter)
         return np.array(pil_frame)
@@ -431,6 +266,33 @@ class Match:
         height: int = 27,
         width: int = 120,
     ) -> np.ndarray:
+        """
+        Draw counter
+
+        Parameters
+        ----------
+        frame : np.ndarray
+            Frame
+        text : str
+            Text in left-side of counter
+        counter_text : str
+            Text in right-side of counter
+        origin : tuple
+            Origin (x, y)
+        color : tuple
+            Color
+        text_color : tuple
+            Color of text
+        height : int, optional
+            Height, by default 27
+        width : int, optional
+            Width, by default 120
+
+        Returns
+        -------
+        np.ndarray
+            Frame with counter
+        """
 
         team_begin = origin
         team_width_ratio = 0.417
