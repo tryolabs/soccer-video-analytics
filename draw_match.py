@@ -1,5 +1,6 @@
 import cv2
-import pandas as pd
+import numpy as np
+import PIL
 
 from inference import Converter, HSVClassifier, NNClassifier, YoloV5, hsv_classifier
 from inference.filters import filters
@@ -30,12 +31,18 @@ match.team_possession = man_city
 
 frame = cv2.imread("images/city_gk_vs_referee.png")
 
+counter_background = match.get_counter_backround()
+
 # Players
-player_detections = get_player_detections(person_detector, hsv_classifier, frame)
+player_detections = get_player_detections(person_detector, frame)
 player_detections = hsv_classifier.predict_from_detections(
     detections=player_detections, img=frame
 )
 classify_city_gk(player_detections)
+
+for i, player in enumerate(player_detections):
+    player_detections[i].data["id"] = i
+
 players = Player.from_detections(detections=player_detections, teams=teams)
 
 # Ball
@@ -48,10 +55,14 @@ if ball:
 # Match
 match.update(players, ball)
 
+
 # Draw
-frame = Player.draw_players(players=players, frame=frame, confidence=False)
+frame = PIL.Image.fromarray(frame).convert("RGBA")
+
+frame = Player.draw_players(players=players, frame=frame, confidence=True, id=True)
 frame = ball.draw(frame)
-frame = match.draw(frame, debug=False)
+frame = match.draw(frame, counter_background=counter_background, debug=False)
+frame = np.array(frame)
 
 # Write img
 cv2.imwrite("match.png", frame)

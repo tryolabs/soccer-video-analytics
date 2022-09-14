@@ -226,21 +226,16 @@ class Match:
 
         return frame
 
-    def draw_counter_background(self, frame: np.ndarray, origin: tuple) -> np.ndarray:
+    def get_counter_backround(
+        self,
+    ) -> PIL.Image.Image:
         """
-        Draw counter background
-
-        Parameters
-        ----------
-        frame : np.ndarray
-            Frame
-        origin : tuple
-            Origin (x, y)
+        Get counter backround
 
         Returns
         -------
-        np.ndarray
-            Frame with counter background
+        PIL.Image.Image
+            Counter backround
         """
 
         counter = PIL.Image.open("./images/board.png").convert("RGBA")
@@ -251,13 +246,37 @@ class Match:
         counter = counter.transpose()
         counter = PIL.Image.fromarray(counter)
         counter = counter.resize((int(315 * 1.2), int(210 * 1.2)))
-        pil_frame = PIL.Image.fromarray(frame)
-        pil_frame.paste(counter, origin, counter)
-        return np.array(pil_frame)
+        return counter
+
+    def draw_counter_background(
+        self,
+        frame: PIL.Image.Image,
+        origin: tuple,
+        counter_background: PIL.Image.Image,
+    ) -> PIL.Image.Image:
+        """
+        Draw counter background
+
+        Parameters
+        ----------
+        frame : PIL.Image.Image
+            Frame
+        origin : tuple
+            Origin (x, y)
+        counter_background : PIL.Image.Image
+            Counter background
+
+        Returns
+        -------
+        PIL.Image.Image
+            Frame with counter background
+        """
+        frame.paste(counter_background, origin, counter_background)
+        return frame
 
     def draw_counter(
         self,
-        frame: np.ndarray,
+        frame: PIL.Image.Image,
         text: str,
         counter_text: str,
         origin: tuple,
@@ -265,13 +284,13 @@ class Match:
         text_color: tuple,
         height: int = 27,
         width: int = 120,
-    ) -> np.ndarray:
+    ) -> PIL.Image.Image:
         """
         Draw counter
 
         Parameters
         ----------
-        frame : np.ndarray
+        frame : PIL.Image.Image
             Frame
         text : str
             Text in left-side of counter
@@ -290,7 +309,7 @@ class Match:
 
         Returns
         -------
-        np.ndarray
+        PIL.Image.Image
             Frame with counter
         """
 
@@ -346,26 +365,41 @@ class Match:
 
         return frame
 
-    def draw(self, frame: np.ndarray, debug: bool = False) -> np.ndarray:
+    def draw(
+        self,
+        frame: PIL.Image.Image,
+        counter_background: PIL.Image.Image,
+        debug: bool = False,
+    ) -> PIL.Image.Image:
         """
 
         Draw elements of the match in frame
 
         Parameters
         ----------
-        frame : np.ndarray
+        frame : PIL.Image.Image
             Frame
+        counter_background : PIL.Image.Image
+            Counter background
         debug : bool, optional
             Whether to draw extra debug information, by default False
 
         Returns
         -------
-        np.ndarray
+        PIL.Image.Image
             Frame with elements of the match
         """
-        frame_width = frame.shape[1]
+
+        # get width of PIL.Image
+        frame_width = frame.size[0]
         counter_origin = (frame_width - 540, 40)
-        frame = self.draw_counter_background(frame, origin=counter_origin)
+
+        frame = self.draw_counter_background(
+            frame,
+            origin=counter_origin,
+            counter_background=counter_background,
+        )
+
         frame = self.draw_counter(
             frame,
             origin=(counter_origin[0] + 35, counter_origin[1] + 130),

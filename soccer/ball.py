@@ -27,10 +27,13 @@ class Ball:
         match : Match
             Match object
         """
-        if self.detection is None or match.team_possession is None:
+        if match.team_possession is None:
             return
 
-        self.detection.data["color"] = match.team_possession.color
+        self.color = match.team_possession.color
+
+        if self.detection:
+            self.detection.data["color"] = match.team_possession.color
 
     @property
     def center(self) -> tuple:

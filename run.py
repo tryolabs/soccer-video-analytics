@@ -1,8 +1,10 @@
-import cv2
+import time
+
 import numpy as np
+import PIL
 from norfair import AbsolutePaths, Tracker, Video
 from norfair.camera_motion import MotionEstimator
-from norfair.distances import iou, mean_euclidean
+from norfair.distances import mean_euclidean
 
 from inference import Converter, HSVClassifier, NNClassifier, YoloV5, hsv_classifier
 from inference.filters import filters
@@ -33,7 +35,6 @@ def get_points_to_draw(points: np.array) -> np.ndarray:
     return np.array([[(xmin + xmax) / 2, ymax]])
 
 
-ball_path_drawer = AbsolutePaths(max_history=50, thickness=2, color=(255, 255, 255))
 player_path_drawer = AbsolutePaths(
     max_history=4, thickness=2, get_points_to_draw=get_points_to_draw
 )
@@ -43,7 +44,6 @@ classifier = NNClassifier(
     model_path="models/model_classification.pt",
     classes=["Chelsea", "Man City", "Referee"],
 )
-
 
 hsv_classifier = HSVClassifier(filters=filters)
 classifier = InertiaClassifier(classifier=hsv_classifier, inertia=20)
@@ -85,13 +85,15 @@ coord_transformations = None
 # past_points = []
 path = AbsolutePath()
 
+counter_background = match.get_counter_backround()
+
 for i, frame in enumerate(video):
 
     # if i > 400:
     #     continue
 
     # Get Detections
-    players_detections = get_player_detections(player_detector, classifier, frame)
+    players_detections = get_player_detections(player_detector, frame)
     ball_detections = get_ball_detections(ball_detector, frame)
     detections = ball_detections + players_detections
 
@@ -113,12 +115,6 @@ for i, frame in enumerate(video):
     player_detections = Converter.TrackedObjects_to_Detections(player_track_objects)
     ball_detections = Converter.TrackedObjects_to_Detections(ball_track_objects)
 
-    for i, player in enumerate(player_detections):
-        player_detections[i].data["label"] = player.data["id"]
-
-    for i, a_ball in enumerate(ball_detections):
-        ball_detections[i].data["label"] = a_ball.data["id"]
-
     player_detections = classifier.predict_from_detections(
         detections=player_detections,
         img=frame,
@@ -131,29 +127,40 @@ for i, frame in enumerate(video):
     players = Player.from_detections(detections=players_detections, teams=teams)
     match.update(players, ball)
 
-    # Draw
-    ball_detection = None if ball is None else ball.detection
+    # # Draw
+    # convert frame to pil img
+    frame = PIL.Image.fromarray(frame).convert("RGBA")
+    # ball_detection = None if ball is None else ball.detection
 
+    # start = time.time()
     frame = path.draw(
         img=frame,
-        detection=ball_detection,
+        detection=ball.detection,
         coord_transformations=coord_transformations,
         color=match.team_possession.color,
     )
+    # end = time.time()
+    # print(f"Time to draw path: {end - start}")
 
-    # frame = Player.draw_players(players=players, frame=frame, confidence=False)
+    frame = Player.draw_players(
+        players=players, frame=frame, confidence=False, id=False
+    )
 
-    # if ball:
-    #     frame = ball.draw(frame)
-
-    frame = match.draw(frame, debug=False)
+    if ball:
+        frame = ball.draw(frame)
+    # start = time.time()
+    frame = match.draw(frame, counter_background=counter_background, debug=False)
+    # end = time.time()
+    # print(f"Time to draw counter: {end - start}")
     # frame = player_path_drawer.draw(
     #     frame, player_track_objects, coord_transform=coord_transformations
     # )
-    # frame = ball_path_drawer.draw(
-    #     frame, ball_track_objects, coord_transform=coord_transformations
-    # )
-
+    frame = np.array(frame)
     # Write video
     video.write(frame)
-    # video.show(frame)
+
+    # for i, player in enumerate(player_detections):
+    #     player_detections[i].data["label"] = player.data["id"]
+
+    # for i, a_ball in enumerate(ball_detections):
+    #     ball_detections[i].data["label"] = a_ball.data["id"]

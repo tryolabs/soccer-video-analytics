@@ -94,7 +94,9 @@ class Player:
 
         return self.right_foot
 
-    def draw(self, frame: np.ndarray, confidence: bool = False) -> np.ndarray:
+    def draw(
+        self, frame: np.ndarray, confidence: bool = False, id: bool = False
+    ) -> np.ndarray:
         """
         Draw the player on the frame
 
@@ -104,6 +106,8 @@ class Player:
             Frame to draw on
         confidence : bool, optional
             Whether to draw confidence text in bounding box, by default False
+        id : bool, optional
+            Whether to draw id text in bounding box, by default False
 
         Returns
         -------
@@ -116,7 +120,7 @@ class Player:
         if self.team is not None:
             self.detection.data["color"] = self.team.color
 
-        return Draw.draw_detection(self.detection, frame, condifence=confidence)
+        return Draw.draw_detection(self.detection, frame, condifence=confidence, id=id)
 
     def draw_pointer(self, frame: np.ndarray) -> np.ndarray:
         """
@@ -147,7 +151,10 @@ class Player:
 
     @staticmethod
     def draw_players(
-        players: List["Player"], frame: np.ndarray, confidence: bool = False
+        players: List["Player"],
+        frame: np.ndarray,
+        confidence: bool = False,
+        id: bool = False,
     ) -> np.ndarray:
         """
         Draw all players on the frame
@@ -160,6 +167,8 @@ class Player:
             Frame to draw on
         confidence : bool, optional
             Whether to draw confidence text in bounding box, by default False
+        id : bool, optional
+            Whether to draw id text in bounding box, by default False
 
         Returns
         -------
@@ -167,7 +176,7 @@ class Player:
             Frame with players drawn
         """
         for player in players:
-            frame = player.draw(frame, confidence=confidence)
+            frame = player.draw(frame, confidence=confidence, id=id)
 
         return frame
 
