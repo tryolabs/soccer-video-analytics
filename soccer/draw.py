@@ -1,7 +1,6 @@
 from math import sqrt
 from typing import List
 
-import cv2
 import norfair
 import numpy as np
 import PIL
@@ -80,7 +79,7 @@ class Draw:
         draw = PIL.ImageDraw.Draw(img)
 
         if font is None:
-            font = PIL.ImageFont.truetype("Gidole-Regular.ttf", size=20)
+            font = PIL.ImageFont.truetype("fonts/Gidole-Regular.ttf", size=20)
 
         draw.text(
             origin,
@@ -126,10 +125,10 @@ class Draw:
     @staticmethod
     def draw_detection(
         detection: norfair.Detection,
-        img: np.ndarray,
+        img: PIL.Image.Image,
         condifence: bool = False,
         id: bool = False,
-    ) -> np.ndarray:
+    ) -> PIL.Image.Image:
         """
         Draw a bounding box on the image from a norfair.Detection
 
@@ -137,7 +136,7 @@ class Draw:
         ----------
         detection : norfair.Detection
             Detection to draw
-        img : np.ndarray
+        img : PIL.Image.Image
             Image
         condifence : bool, optional
             Whether to draw confidence in the box, by default False
@@ -146,7 +145,7 @@ class Draw:
 
         Returns
         -------
-        np.ndarray
+        PIL.Image.Image
             Image with the bounding box drawn
         """
 
@@ -396,18 +395,13 @@ class Draw:
         draw = PIL.ImageDraw.Draw(img)
 
         if font is None:
-            font = PIL.ImageFont.truetype("Gidole-Regular.ttf", size=24)
+            font = PIL.ImageFont.truetype("fonts/Gidole-Regular.ttf", size=24)
 
         w, h = draw.textsize(text, font=font)
         text_origin = (
             origin[0] + width / 2 - w / 2,
             origin[1] + height / 2 - h / 2,
         )
-        # draw.text(
-        #     text_origin,
-        #     text,
-        #     font=font,
-        # )
 
         draw.text(text_origin, text, font=font, fill=color)
 
@@ -449,6 +443,20 @@ class PathPoint:
     def __init__(
         self, id: int, center: tuple, color: tuple = (255, 255, 255), alpha: float = 1
     ):
+        """
+        Path point
+
+        Parameters
+        ----------
+        id : int
+            Id of the point
+        center : tuple
+            Center of the point (x, y)
+        color : tuple, optional
+            Color of the point, by default (255, 255, 255)
+        alpha : float, optional
+            Alpha value of the point, by default 1
+        """
         self.id = id
         self.center = center
         self.color = color
@@ -463,6 +471,19 @@ class PathPoint:
 
     @staticmethod
     def get_center_from_bounding_box(bounding_box: np.ndarray) -> tuple:
+        """
+        Get the center of a bounding box
+
+        Parameters
+        ----------
+        bounding_box : np.ndarray
+            Bounding box [[xmin, ymin], [xmax, ymax]]
+
+        Returns
+        -------
+        tuple
+            Center of the bounding box (x, y)
+        """
         return (
             int((bounding_box[0][0] + bounding_box[1][0]) / 2),
             int((bounding_box[0][1] + bounding_box[1][1]) / 2),
@@ -486,7 +507,7 @@ class PathPoint:
             Id of the point
         abs_point : np.ndarray
             Absolute bounding box
-        coord_transformations : _type_
+        coord_transformations : "CoordTransformations"
             Coordinate transformations
         color : tuple, optional
             Color of the point, by default None

@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 import PIL
 from norfair import AbsolutePaths, Tracker, Video
@@ -20,8 +18,6 @@ from soccer import Match, Player, Team
 from soccer.draw import AbsolutePath
 
 video = Video(input_path="videos/soccer_posession.mp4")
-# video = Video(input_path="videos/soccer_posession_2.mp4")
-# video = Video(input_path="videos/soccer_posession_short.mp4")
 
 # Object Detectors
 player_detector = YoloV5()
@@ -36,7 +32,7 @@ def get_points_to_draw(points: np.array) -> np.ndarray:
 
 
 player_path_drawer = AbsolutePaths(
-    max_history=4, thickness=2, get_points_to_draw=get_points_to_draw
+    max_history=8, thickness=2, get_points_to_draw=get_points_to_draw
 )
 
 # Classifier
@@ -81,16 +77,11 @@ ball_tracker = Tracker(
 motion_estimator = MotionEstimator()
 coord_transformations = None
 
-
-# past_points = []
 path = AbsolutePath()
 
 counter_background = match.get_counter_backround()
 
 for i, frame in enumerate(video):
-
-    # if i > 400:
-    #     continue
 
     # Get Detections
     players_detections = get_player_detections(player_detector, frame)
@@ -130,37 +121,27 @@ for i, frame in enumerate(video):
     # # Draw
     # convert frame to pil img
     frame = PIL.Image.fromarray(frame).convert("RGBA")
-    # ball_detection = None if ball is None else ball.detection
 
-    # start = time.time()
     frame = path.draw(
         img=frame,
         detection=ball.detection,
         coord_transformations=coord_transformations,
         color=match.team_possession.color,
     )
-    # end = time.time()
-    # print(f"Time to draw path: {end - start}")
 
-    frame = Player.draw_players(
-        players=players, frame=frame, confidence=False, id=False
+    # frame = Player.draw_players(
+    #     players=players, frame=frame, confidence=False, id=False
+    # )
+
+    # if ball:
+    #     frame = ball.draw(frame)
+
+    frame = match.draw(frame, counter_background=counter_background, debug=False)
+
+    frame = np.array(frame)
+    frame = player_path_drawer.draw(
+        frame, player_track_objects, coord_transform=coord_transformations
     )
 
-    if ball:
-        frame = ball.draw(frame)
-    # start = time.time()
-    frame = match.draw(frame, counter_background=counter_background, debug=False)
-    # end = time.time()
-    # print(f"Time to draw counter: {end - start}")
-    # frame = player_path_drawer.draw(
-    #     frame, player_track_objects, coord_transform=coord_transformations
-    # )
-    frame = np.array(frame)
     # Write video
     video.write(frame)
-
-    # for i, player in enumerate(player_detections):
-    #     player_detections[i].data["label"] = player.data["id"]
-
-    # for i, a_ball in enumerate(ball_detections):
-    #     ball_detections[i].data["label"] = a_ball.data["id"]

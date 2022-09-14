@@ -2,25 +2,8 @@ from typing import List
 
 import cv2
 import numpy as np
-import pandas as pd
 
 from inference.base_classifier import BaseClassifier
-
-# Chelsea
-# Upper HSV:  (112, 255, 255)
-# Lower HSV:  (0, 0, 0)
-
-# City
-# Upper HSV:  (91, 255, 255)
-# Lower HSV:  (0, 0, 0)
-
-# City GK
-# Upper HSV:  (118, 255, 255)
-# Lower HSV:  (35, 0, 0)
-
-# Referee
-# Upper HSV:  (179, 255, 51)
-# Lower HSV:  (0, 0, 0)
 
 
 class HSVClassifier(BaseClassifier):
@@ -52,6 +35,30 @@ class HSVClassifier(BaseClassifier):
         self.filters = [self.check_filter_format(filter) for filter in filters]
 
     def check_tuple_format(self, a_tuple: tuple, name: str) -> tuple:
+        """
+        Check tuple format
+
+        Parameters
+        ----------
+        a_tuple : tuple
+            Tuple to check
+        name : str
+            Name of the tuple
+
+        Returns
+        -------
+        tuple
+            Tuple checked
+
+        Raises
+        ------
+        ValueError
+            If tuple is not a tuple
+        ValueError
+            If tuple is not a tuple of 3 elements
+        ValueError
+            If tuple elements are not integers
+        """
         # Check upper hsv is a tuple
         if type(a_tuple) != tuple:
             raise ValueError(f"{name} must be a tuple")
@@ -66,6 +73,30 @@ class HSVClassifier(BaseClassifier):
                 raise ValueError(f"{name} values must be ints")
 
     def check_tuple_intervals(self, a_tuple: tuple, name: str) -> tuple:
+        """
+        Check tuple intervals
+
+        Parameters
+        ----------
+        a_tuple : tuple
+            Tuple to check
+        name : str
+            Name of the tuple
+
+        Returns
+        -------
+        tuple
+            Tuple checked
+
+        Raises
+        ------
+        ValueError
+            If first element is not between 0 and 179
+        ValueError
+            If second element is not between 0 and 255
+        ValueError
+            If third element is not between 0 and 255
+        """
 
         # check hue is between 0 and 179
         if a_tuple[0] < 0 or a_tuple[0] > 179:
@@ -80,7 +111,39 @@ class HSVClassifier(BaseClassifier):
             raise ValueError(f"{name} value must be between 0 and 255")
 
     def check_filter_format(self, filter: dict) -> dict:
+        """
+        Check filter format
 
+        Parameters
+        ----------
+        filter : dict
+            Filter to check
+
+        Returns
+        -------
+        dict
+            Filter checked
+
+        Raises
+        ------
+        ValueError
+            If filter is not a dict
+        ValueError
+            If filter does not have a name
+        ValueError
+            If filter does not have a lower hsv
+        ValueError
+            If filter does not have an upper hsv
+        ValueError
+            If name is not a string
+        ValueError
+            If lower hsv doesnt have correct tuple format
+        ValueError
+            If upper hsv doesnt have correct tuple format
+        """
+
+        if type(filter) != dict:
+            raise ValueError("Filter must be a dict")
         if "name" not in filter:
             raise ValueError("Filter must have a name")
         if "lower_hsv" not in filter:
@@ -101,39 +164,118 @@ class HSVClassifier(BaseClassifier):
         return filter
 
     def get_hsv_img(self, img: np.ndarray) -> np.ndarray:
+        """
+        Get HSV image
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image to convert
+
+        Returns
+        -------
+        np.ndarray
+            HSV image
+        """
         return cv2.cvtColor(img.copy(), cv2.COLOR_BGR2HSV)
 
     def apply_filter(self, img: np.ndarray, filter: dict) -> np.ndarray:
+        """
+        Apply filter to image
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image to apply filter to
+        filter : dict
+            Filter to apply
+
+        Returns
+        -------
+        np.ndarray
+            Filtered image
+        """
         img_hsv = self.get_hsv_img(img)
         mask = cv2.inRange(img_hsv, filter["lower_hsv"], filter["upper_hsv"])
         return cv2.bitwise_and(img, img, mask=mask)
 
-    def get_img_power(self, img: np.ndarray) -> float:
-        # convert hsv to grey
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    def crop_img_for_jersey(self, img: np.ndarray) -> np.ndarray:
+        """
+        Crop image to get only the jersey part
 
-        # cut the image to get jersey
-        height, width = img.shape
+        Parameters
+        ----------
+        img : np.ndarray
+            Image to crop
+
+        Returns
+        -------
+        np.ndarray
+            Cropped image
+        """
+        height, width, _ = img.shape
 
         y_start = int(height * 0.15)
         y_end = int(height * 0.50)
         x_start = int(width * 0.15)
         x_end = int(width * 0.85)
 
-        img = img[y_start:y_end, x_start:x_end]
+        return img[y_start:y_end, x_start:x_end]
 
+    def get_img_power(self, img: np.ndarray) -> float:
+        """
+        Get image power.
+
+        Power is defined as the number of non black pixels of an image.
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image to get power of
+
+        Returns
+        -------
+        float
+            Image power
+        """
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         return cv2.countNonZero(img)
 
     def set_power_in_filter(self, img: np.ndarray, filter: dict) -> dict:
+        """
+        Applies filter to image and saves the output power in the filter.
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image to apply filter to
+        filter : dict
+            Filter to apply
+
+        Returns
+        -------
+        dict
+            Filter with power
+        """
         img_filtered = self.apply_filter(img, filter)
+        img_filtered = self.crop_img_for_jersey(img_filtered)
         filter["power"] = self.get_img_power(img_filtered)
         return filter
 
-    def add_median_blur(self, img: np.ndarray) -> np.ndarray:
-        return cv2.medianBlur(img, 3)
-
-    # predict img using filters dict and apply filter
     def predict_img(self, img: np.ndarray) -> str:
+        """
+        Gets the filter with most power on img and returns its name.
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image to predict
+
+        Returns
+        -------
+        str
+            Name of the filter with most power
+        """
         for i, filter in enumerate(self.filters):
             self.filters[i] = self.set_power_in_filter(img, filter)
 
@@ -141,6 +283,19 @@ class HSVClassifier(BaseClassifier):
         return max_power_filter["name"]
 
     def predict(self, input_image: List[np.ndarray]) -> str:
+        """
+        Predicts the name of the team from the input image.
+
+        Parameters
+        ----------
+        input_image : List[np.ndarray]
+            Image to predict
+
+        Returns
+        -------
+        str
+            Predicted team name
+        """
 
         if type(input_image) != list:
             input_image = [input_image]
