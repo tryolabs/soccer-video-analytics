@@ -4,9 +4,8 @@ from norfair import AbsolutePaths, Tracker, Video
 from norfair.camera_motion import MotionEstimator
 from norfair.distances import mean_euclidean
 
-from inference import Converter, HSVClassifier, NNClassifier, YoloV5, hsv_classifier
+from inference import Converter, HSVClassifier, InertiaClassifier, NNClassifier, YoloV5
 from inference.filters import filters
-from inference.inertia_classifier import InertiaClassifier
 from run_utils import (
     classify_city_gk,
     get_ball_detections,
@@ -24,24 +23,16 @@ player_detector = YoloV5()
 ball_detector = YoloV5(model_path="models/best.pt")
 
 
-def get_points_to_draw(points: np.array) -> np.ndarray:
-    xmin, ymin = points[0]
-    xmax, ymax = points[1]
+# NN Classifier
+# nn_classifier = NNClassifier(
+#     model_path="models/model_classification.pt",
+#     classes=["Chelsea", "Man City", "Referee"],
+# )
 
-    return np.array([[(xmin + xmax) / 2, ymax]])
-
-
-player_path_drawer = AbsolutePaths(
-    max_history=8, thickness=2, get_points_to_draw=get_points_to_draw
-)
-
-# Classifier
-classifier = NNClassifier(
-    model_path="models/model_classification.pt",
-    classes=["Chelsea", "Man City", "Referee"],
-)
-
+# HSV Classifier
 hsv_classifier = HSVClassifier(filters=filters)
+
+# Add inertia to classifier
 classifier = InertiaClassifier(classifier=hsv_classifier, inertia=20)
 
 # Teams and Match
@@ -58,9 +49,6 @@ match = Match(home=chelsea, away=man_city)
 match.team_possession = man_city
 
 # Tracking
-DISTANCE_THRESHOLD_BBOX: float = 0.65
-DISTANCE_THRESHOLD_CENTROID: int = 200
-
 player_tracker = Tracker(
     distance_function=mean_euclidean,
     distance_threshold=250,
@@ -70,18 +58,36 @@ player_tracker = Tracker(
 
 ball_tracker = Tracker(
     distance_function=mean_euclidean,
-    distance_threshold=DISTANCE_THRESHOLD_CENTROID,
+    distance_threshold=200,
     initialization_delay=10,
     hit_counter_max=2000,
 )
 motion_estimator = MotionEstimator()
 coord_transformations = None
 
+
+# Paths
 path = AbsolutePath()
 
+
+def get_points_to_draw(points: np.array) -> np.ndarray:
+    xmin, ymin = points[0]
+    xmax, ymax = points[1]
+
+    return np.array([[(xmin + xmax) / 2, ymax]])
+
+
+player_path_drawer = AbsolutePaths(
+    max_history=8, thickness=2, get_points_to_draw=get_points_to_draw
+)
+
+# Get Counter img
 counter_background = match.get_counter_backround()
 
 for i, frame in enumerate(video):
+
+    # if i > 200:
+    #     continue
 
     # Get Detections
     players_detections = get_player_detections(player_detector, frame)
@@ -120,7 +126,7 @@ for i, frame in enumerate(video):
 
     # # Draw
     # convert frame to pil img
-    frame = PIL.Image.fromarray(frame).convert("RGBA")
+    frame = PIL.Image.fromarray(frame)
 
     frame = path.draw(
         img=frame,
@@ -129,19 +135,20 @@ for i, frame in enumerate(video):
         color=match.team_possession.color,
     )
 
-    # frame = Player.draw_players(
-    #     players=players, frame=frame, confidence=False, id=False
-    # )
+    frame = Player.draw_players(
+        players=players, frame=frame, confidence=False, id=False
+    )
 
-    # if ball:
-    #     frame = ball.draw(frame)
+    if ball:
+        frame = ball.draw(frame)
 
     frame = match.draw(frame, counter_background=counter_background, debug=False)
 
     frame = np.array(frame)
-    frame = player_path_drawer.draw(
-        frame, player_track_objects, coord_transform=coord_transformations
-    )
+
+    # frame = player_path_drawer.draw(
+    #     frame, player_track_objects, coord_transform=coord_transformations
+    # )
 
     # Write video
     video.write(frame)

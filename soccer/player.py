@@ -1,6 +1,7 @@
 from typing import List
 
 import numpy as np
+import PIL
 from norfair import Detection
 
 from soccer.ball import Ball
@@ -95,14 +96,14 @@ class Player:
         return self.right_foot
 
     def draw(
-        self, frame: np.ndarray, confidence: bool = False, id: bool = False
-    ) -> np.ndarray:
+        self, frame: PIL.Image.Image, confidence: bool = False, id: bool = False
+    ) -> PIL.Image.Image:
         """
         Draw the player on the frame
 
         Parameters
         ----------
-        frame : np.ndarray
+        frame : PIL.Image.Image
             Frame to draw on
         confidence : bool, optional
             Whether to draw confidence text in bounding box, by default False
@@ -111,7 +112,7 @@ class Player:
 
         Returns
         -------
-        np.ndarray
+        PIL.Image.Image
             Frame with player drawn
         """
         if self.detection is None:
@@ -152,10 +153,10 @@ class Player:
     @staticmethod
     def draw_players(
         players: List["Player"],
-        frame: np.ndarray,
+        frame: PIL.Image.Image,
         confidence: bool = False,
         id: bool = False,
-    ) -> np.ndarray:
+    ) -> PIL.Image.Image:
         """
         Draw all players on the frame
 
@@ -163,7 +164,7 @@ class Player:
         ----------
         players : List[Player]
             List of Player objects
-        frame : np.ndarray
+        frame : PIL.Image.Image
             Frame to draw on
         confidence : bool, optional
             Whether to draw confidence text in bounding box, by default False
@@ -172,7 +173,7 @@ class Player:
 
         Returns
         -------
-        np.ndarray
+        PIL.Image.Image
             Frame with players drawn
         """
         for player in players:

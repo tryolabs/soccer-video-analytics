@@ -59,9 +59,11 @@ match.update(players, ball)
 # Draw
 frame = PIL.Image.fromarray(frame).convert("RGBA")
 
-frame = Player.draw_players(players=players, frame=frame, confidence=True, id=True)
-frame = ball.draw(frame)
+
+# frame = ball.draw(frame)
 frame = match.draw(frame, counter_background=counter_background, debug=False)
+frame = Player.draw_players(players=players, frame=frame, confidence=True, id=True)
+
 frame = np.array(frame)
 
 # Write img

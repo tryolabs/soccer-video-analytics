@@ -31,7 +31,9 @@ class Match:
         self.team_possession = self.home
         self.current_team = self.home
         self.possession_counter = 0
+        # Amount of consecutive frames new team has to have the ball in order to change possession
         self.possesion_counter_threshold = 20
+        # Distance in pixels from player to ball in order to consider a player has the ball
         self.ball_distance_threshold = 60
         self.fps = fps
 

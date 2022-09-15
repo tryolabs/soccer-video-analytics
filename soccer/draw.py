@@ -159,7 +159,7 @@ class Draw:
         if "color" in detection.data:
             color = detection.data["color"] + (255,)
 
-        Draw.draw_bounding_box(img=img, rectangle=detection.points, color=color)
+        img = Draw.draw_bounding_box(img=img, rectangle=detection.points, color=color)
 
         if "label" in detection.data:
             label = detection.data["label"]
