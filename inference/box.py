@@ -20,6 +20,10 @@ class Box:
         self.top_left = top_left
         self.bottom_right = bottom_right
 
+        # make tuples int
+        self.top_left = (int(self.top_left[0]), int(self.top_left[1]))
+        self.bottom_right = (int(self.bottom_right[0]), int(self.bottom_right[1]))
+
         self.img = self.cut(img.copy())
 
     def cut(self, img: np.ndarray) -> np.ndarray:

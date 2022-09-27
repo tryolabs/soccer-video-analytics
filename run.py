@@ -13,14 +13,14 @@ from run_utils import (
     get_player_detections,
     update_motion_estimator,
 )
-from soccer import Match, Player, Team
+from soccer import Draw, Match, Player, Team
 from soccer.draw import AbsolutePath
 
 video = Video(input_path="videos/soccer_posession.mp4")
 
 # Object Detectors
 player_detector = YoloV5()
-ball_detector = YoloV5(model_path="models/best.pt")
+ball_detector = YoloV5(model_path="models/ball.pt")
 
 
 # NN Classifier
@@ -45,7 +45,7 @@ chelsea = Team(
     text_color=(255, 255, 255),
 )
 teams = [man_city, chelsea]
-match = Match(home=chelsea, away=man_city)
+match = Match(home=chelsea, away=man_city, fps=25)
 match.team_possession = man_city
 
 # Tracking

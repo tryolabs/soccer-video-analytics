@@ -222,6 +222,22 @@ class HSVClassifier(BaseClassifier):
 
         return img[y_start:y_end, x_start:x_end]
 
+    def add_median_blur(self, img: np.ndarray) -> np.ndarray:
+        """
+        Add median blur to image
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image to add blur to
+
+        Returns
+        -------
+        np.ndarray
+            Blurred image
+        """
+        return cv2.medianBlur(img, 5)
+
     def get_img_power(self, img: np.ndarray) -> float:
         """
         Get image power.
@@ -257,8 +273,10 @@ class HSVClassifier(BaseClassifier):
         dict
             Filter with power
         """
-        img_filtered = self.apply_filter(img, filter)
+        img_filtered = img.copy()
         img_filtered = self.crop_img_for_jersey(img_filtered)
+        img_filtered = self.apply_filter(img_filtered, filter)
+        img_filtered = self.add_median_blur(img_filtered)
         filter["power"] = self.get_img_power(img_filtered)
         return filter
 

@@ -1,6 +1,6 @@
 chelsea_filter = {
     "name": "Chelsea",
-    "lower_hsv": (112, 0, 0),
+    "lower_hsv": (114, 0, 0),
     "upper_hsv": (179, 255, 255),
 }
 
@@ -12,8 +12,8 @@ chelsea_gk_filter = {
 
 city_filter = {
     "name": "Man City",
-    "lower_hsv": (91, 0, 0),
-    "upper_hsv": (112, 255, 255),
+    "lower_hsv": (100, 0, 0),
+    "upper_hsv": (109, 255, 255),
 }
 
 referee_filter = {

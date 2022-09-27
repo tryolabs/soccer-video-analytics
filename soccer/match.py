@@ -76,7 +76,10 @@ class Match:
 
         self.possession_counter += 1
 
-        if self.possession_counter >= self.possesion_counter_threshold:
+        if (
+            self.possession_counter >= self.possesion_counter_threshold
+            and closest_player.team is not None
+        ):
             self.change_team(self.current_team)
 
     def change_team(self, team: Team):
@@ -440,12 +443,14 @@ class Match:
                 if distance > self.ball_distance_threshold:
                     color = (255, 255, 255)
 
-                frame = cv2.line(
-                    frame,
-                    closest_foot,
-                    self.ball.center,
-                    color,
-                    2,
+                draw = PIL.ImageDraw.Draw(frame)
+                draw.line(
+                    [
+                        tuple(closest_foot),
+                        tuple(self.ball.center),
+                    ],
+                    fill=color,
+                    width=2,
                 )
 
         return frame

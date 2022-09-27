@@ -210,7 +210,7 @@ class BaseDetector(ABC):
 
     @staticmethod
     def generate_predictions_mask(
-        predictions: pd.DataFrame, img: np.ndarray
+        predictions: pd.DataFrame, img: np.ndarray, margin: int = 0
     ) -> np.ndarray:
         """
         Generates a mask of the predictions bounding boxes
@@ -221,6 +221,8 @@ class BaseDetector(ABC):
             DataFrame containing the bounding boxes and the class of the objects
         img : np.ndarray
             Image where the predictions were made
+        margin : int, optional
+            Margin to add to the bounding box, by default 0
 
         Returns
         -------
@@ -245,6 +247,6 @@ class BaseDetector(ABC):
             xmax = round(row["xmax"])
             ymax = round(row["ymax"])
 
-            mask[ymin:ymax, xmin:xmax] = 0
+            mask[ymin - margin : ymax + margin, xmin - margin : xmax + margin] = 0
 
         return mask

@@ -43,7 +43,7 @@ class Draw:
         draw = PIL.ImageDraw.Draw(img)
         draw.rectangle(
             [origin, (origin[0] + width, origin[1] + height)],
-            outline=color,
+            fill=color,
             width=thickness,
         )
         return img
@@ -92,7 +92,7 @@ class Draw:
 
     @staticmethod
     def draw_bounding_box(
-        img: PIL.Image.Image, rectangle: tuple, color: tuple, thickness: int = 2
+        img: PIL.Image.Image, rectangle: tuple, color: tuple, thickness: int = 3
     ) -> PIL.Image.Image:
         """
 
@@ -114,6 +114,8 @@ class Draw:
         PIL.Image.Image
             Image with the bounding box drawn
         """
+
+        rectangle = rectangle[0:2]
 
         draw = PIL.ImageDraw.Draw(img)
         rectangle = [tuple(x) for x in rectangle]
@@ -165,7 +167,7 @@ class Draw:
             label = detection.data["label"]
             img = Draw.draw_text(
                 img=img,
-                origin=(x2, y1 - 20),
+                origin=(x1, y1 - 20),
                 text=label,
                 color=color,
             )
@@ -174,7 +176,7 @@ class Draw:
             id = detection.data["id"]
             img = Draw.draw_text(
                 img=img,
-                origin=(x1, y1 - 20),
+                origin=(x2, y1 - 20),
                 text=f"ID: {id}",
                 color=color,
             )

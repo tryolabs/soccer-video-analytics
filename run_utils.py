@@ -83,10 +83,10 @@ def create_mask(frame: np.ndarray, detections: List[norfair.Detection]) -> np.nd
         mask = np.ones(frame.shape[:2], dtype=frame.dtype)
     else:
         detections_df = Converter.Detections_to_DataFrame(detections)
-        mask = YoloV5.generate_predictions_mask(detections_df, frame)
+        mask = YoloV5.generate_predictions_mask(detections_df, frame, margin=40)
 
     # remove goal counter
-    mask[80:200, 160:500] = 0
+    mask[69:200, 160:510] = 0
 
     return mask
 
