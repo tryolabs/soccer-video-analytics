@@ -1,4 +1,5 @@
 from math import sqrt
+from pathlib import Path
 from typing import List
 
 import norfair
@@ -649,6 +650,7 @@ class AbsolutePath:
         img: PIL.Image.Image,
         path: List[PathPoint],
         thickness: int = 4,
+        frame_frequency: int = 30,
     ) -> PIL.Image.Image:
         """
         Draw a path with arrows every 30 points
@@ -670,7 +672,7 @@ class AbsolutePath:
 
         for i, point in enumerate(path):
 
-            if i < 4 or i % 30 != 0:
+            if i < 4 or i % frame_frequency:
                 continue
 
             end = path[i]
@@ -687,7 +689,7 @@ class AbsolutePath:
         return img
 
     def draw_path_fast(
-        self, img: PIL.Image.Image, path: List[PathPoint], color: tuple
+        self, img: PIL.Image.Image, path: List[PathPoint], color: tuple, width: int = 2
     ) -> PIL.Image.Image:
         """
         Draw a path without alpha (faster)
@@ -713,7 +715,34 @@ class AbsolutePath:
         draw.line(
             path_list,
             fill=color,
-            width=2,
+            width=width,
+        )
+
+        return img
+
+    def draw_arrow(
+        self, img: PIL.Image.Image, points: List[PathPoint], color: tuple, width: int
+    ) -> PIL.Image.Image:
+        """Draw arrow between two points
+
+        Args:
+            img (PIL.Image.Image): image to draw
+            points (List[PathPoint]): start and end points
+            color (tuple): color of the arrow
+            width (int): width of the arrow
+
+        Returns:
+            PIL.Image.Image: Image with the arrow
+        """
+
+        img = self.draw_path_fast(img=img, path=points, color=color, width=width)
+        img = self.draw_arrow_head(
+            img=img,
+            start=points[0].center,
+            end=points[1].center,
+            color=color,
+            length=30,
+            height=15,
         )
 
         return img

@@ -57,6 +57,28 @@ class Ball:
 
         return np.array([round(center_x), round(center_y)])
 
+    @property
+    def center_abs(self) -> tuple:
+        """
+        Returns the center of the ball
+
+        Returns
+        -------
+        tuple
+            Center of the ball (x, y)
+        """
+        if self.detection is None:
+            return None
+
+        points = self.detection.absolute_points
+        x1, y1 = points[0]
+        x2, y2 = points[1]
+
+        center_y = (y1 + y2) / 2
+        center_x = (x1 + x2) / 2
+
+        return np.array([round(center_x), round(center_y)])
+
     def draw(self, frame: np.ndarray) -> np.ndarray:
         """
         Draw the ball on the frame

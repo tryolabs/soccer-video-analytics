@@ -42,6 +42,19 @@ class Player:
         return self.detection.points[1]
 
     @property
+    def left_foot_abs(self):
+        points = self.detection.absolute_points
+
+        x1, y1 = points[0]
+        x2, y2 = points[1]
+
+        return [x1, y2]
+
+    @property
+    def right_foot_abs(self):
+        return self.detection.absolute_points[1]
+
+    @property
     def feet(self) -> np.ndarray:
         return np.array([self.left_foot, self.right_foot])
 
@@ -94,6 +107,33 @@ class Player:
             return self.left_foot
 
         return self.right_foot
+
+    def closest_foot_to_ball_abs(self, ball: Ball) -> np.ndarray:
+        """
+
+        Returns the closest foot to the ball
+
+        Parameters
+        ----------
+        ball : Ball
+            Ball object
+
+        Returns
+        -------
+        np.ndarray
+            Closest foot to the ball (x, y)
+        """
+
+        if self.detection is None or ball.center_abs is None:
+            return None
+
+        left_foot_distance = np.linalg.norm(ball.center_abs - self.left_foot_abs)
+        right_foot_distance = np.linalg.norm(ball.center_abs - self.right_foot_abs)
+
+        if left_foot_distance < right_foot_distance:
+            return self.left_foot_abs
+
+        return self.right_foot_abs
 
     def draw(
         self, frame: PIL.Image.Image, confidence: bool = False, id: bool = False
@@ -149,6 +189,12 @@ class Player:
 
     def __str__(self):
         return f"Player: {self.feet}, team: {self.team}"
+
+    def __eq__(self, other: "Player") -> bool:
+        self_id = self.detection.data["id"]
+        other_id = other.detection.data["id"]
+
+        return self_id == other_id
 
     @staticmethod
     def draw_players(

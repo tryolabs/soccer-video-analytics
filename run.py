@@ -1,3 +1,5 @@
+import argparse
+
 import cv2
 import numpy as np
 import PIL
@@ -16,13 +18,36 @@ from run_utils import (
 )
 from soccer import Match, Player, Team
 from soccer.draw import AbsolutePath
+from soccer.pass_event import Pass
 
-video = Video(input_path="videos/soccer_posession.mp4")
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--video",
+    default="videos/soccer_posession.mp4",
+    type=str,
+    help="Path to the input video",
+)
+parser.add_argument(
+    "--model", default="models/ball.pt", type=str, help="Path to the model"
+)
+parser.add_argument(
+    "--passes",
+    action="store_true",
+    help="Enable pass detection",
+)
+parser.add_argument(
+    "--posession",
+    action="store_true",
+    help="Enable posession counter",
+)
+args = parser.parse_args()
+
+video = Video(input_path=args.video)
 fps = video.video_capture.get(cv2.CAP_PROP_FPS)
 
 # Object Detectors
 player_detector = YoloV5()
-ball_detector = YoloV5(model_path="models/ball.pt")
+ball_detector = YoloV5(model_path=args.model)
 
 # HSV Classifier
 hsv_classifier = HSVClassifier(filters=filters)
@@ -106,21 +131,32 @@ for i, frame in enumerate(video):
     # Draw
     frame = PIL.Image.fromarray(frame)
 
-    frame = path.draw(
-        img=frame,
-        detection=ball.detection,
-        coord_transformations=coord_transformations,
-        color=match.team_possession.color,
-    )
+    if args.posession:
+        frame = path.draw(
+            img=frame,
+            detection=ball.detection,
+            coord_transformations=coord_transformations,
+            color=match.team_possession.color,
+        )
 
-    frame = Player.draw_players(
-        players=players, frame=frame, confidence=False, id=False
-    )
+        frame = Player.draw_players(
+            players=players, frame=frame, confidence=False, id=True
+        )
 
-    if ball:
-        frame = ball.draw(frame)
+        if ball:
+            frame = ball.draw(frame)
 
-    frame = match.draw(frame, counter_background=counter_background, debug=False)
+        frame = match.draw(frame, counter_background=counter_background, debug=False)
+
+        # frame = player_path_drawer.draw(
+        #     frame, player_track_objects, coord_transform=coord_transformations
+        # )
+
+    if args.passes:
+        pass_list = match.passes
+        frame = Pass.draw_pass_list(
+            img=frame, passes=pass_list, coord_transformations=coord_transformations
+        )
 
     frame = np.array(frame)
 
