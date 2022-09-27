@@ -1,4 +1,4 @@
-# track-soccer-possession
+# Soccer Video Analytics
 
 Demo on how to track soccer ball possession.
 
