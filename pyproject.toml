@@ -2,7 +2,7 @@
 name = "demo"
 version = "0.1.0"
 description = ""
-authors = ["Diego Marvid <diegomarvid99@hotmail.com>"]
+authors = ["Diego Marvid <dmarvid@tryolabs.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
