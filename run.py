@@ -1,6 +1,6 @@
 import numpy as np
 import PIL
-from norfair import AbsolutePaths, Tracker, Video
+from norfair import Tracker, Video
 from norfair.camera_motion import MotionEstimator
 from norfair.distances import mean_euclidean
 
@@ -21,7 +21,6 @@ video = Video(input_path="videos/soccer_posession.mp4")
 # Object Detectors
 player_detector = YoloV5()
 ball_detector = YoloV5(model_path="models/ball.pt")
-
 
 # NN Classifier
 # nn_classifier = NNClassifier(
@@ -65,29 +64,13 @@ ball_tracker = Tracker(
 motion_estimator = MotionEstimator()
 coord_transformations = None
 
-
 # Paths
 path = AbsolutePath()
-
-
-def get_points_to_draw(points: np.array) -> np.ndarray:
-    xmin, ymin = points[0]
-    xmax, ymax = points[1]
-
-    return np.array([[(xmin + xmax) / 2, ymax]])
-
-
-player_path_drawer = AbsolutePaths(
-    max_history=8, thickness=2, get_points_to_draw=get_points_to_draw
-)
 
 # Get Counter img
 counter_background = match.get_counter_backround()
 
 for i, frame in enumerate(video):
-
-    # if i > 200:
-    #     continue
 
     # Get Detections
     players_detections = get_player_detections(player_detector, frame)
@@ -124,8 +107,7 @@ for i, frame in enumerate(video):
     players = Player.from_detections(detections=players_detections, teams=teams)
     match.update(players, ball)
 
-    # # Draw
-    # convert frame to pil img
+    # Draw
     frame = PIL.Image.fromarray(frame)
 
     frame = path.draw(
@@ -145,10 +127,6 @@ for i, frame in enumerate(video):
     frame = match.draw(frame, counter_background=counter_background, debug=False)
 
     frame = np.array(frame)
-
-    # frame = player_path_drawer.draw(
-    #     frame, player_track_objects, coord_transform=coord_transformations
-    # )
 
     # Write video
     video.write(frame)
