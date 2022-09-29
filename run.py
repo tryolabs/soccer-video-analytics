@@ -155,10 +155,7 @@ for i, frame in enumerate(video):
         # )
 
     if args.passes:
-        team1_passes = teams[0].passes
-        team2_passes = teams[1].passes
-
-        pass_list = team1_passes + team2_passes
+        pass_list = match.get_passes
 
         frame = Pass.draw_pass_list(
             img=frame, passes=pass_list, coord_transformations=coord_transformations
