@@ -16,15 +16,22 @@ class Pass:
         self.team = team
         self.draw_abs = AbsolutePath()
 
-    def draw(self, img: PIL.Image.Image, coord_transformations) -> PIL.Image.Image:
+    def draw(
+        self, img: PIL.Image.Image, coord_transformations: "CoordinatesTransformation"
+    ) -> PIL.Image.Image:
         """Draw a pass
 
-        Args:
-            img (PIL.Image.Image): frame
-            coord_transformations: coordinates transformation
+        Parameters
+        ----------
+        img : PIL.Image.Image
+            Video frame
+        coord_transformations : CoordinatesTransformation
+            coordinates transformation
 
-        Returns:
-            PIL.Image.Image: frame with the new pass
+        Returns
+        -------
+        PIL.Image.Image
+            frame with the new pass
         """
         rel_point_start = PathPoint.from_abs_bbox(
             id=0,
@@ -45,20 +52,38 @@ class Pass:
             path=new_pass,
             width=img.size[0],
             height=img.size[0],
-            margin=2500,
+            margin=3000,
         )
 
         if len(pass_filtered) == 2:
             img = self.draw_abs.draw_arrow(
-                img=img, points=pass_filtered, color=self.team.color, width=6
+                img=img, points=pass_filtered, color=self.team.color, width=6, alpha=150
             )
 
         return img
 
     @staticmethod
     def draw_pass_list(
-        img: PIL.Image.Image, passes: List["Pass"], coord_transformations
+        img: PIL.Image.Image,
+        passes: List["Pass"],
+        coord_transformations: "CoordinatesTransformation",
     ) -> PIL.Image.Image:
+        """Draw all the passes
+
+        Parameters
+        ----------
+        img : PIL.Image.Image
+            Video frame
+        passes : List[Pass]
+            Passes list to draw
+        coord_transformations : CoordinatesTransformation
+            Coordinate transformation for the current frame
+
+        Returns
+        -------
+        PIL.Image.Image
+            Drawed frame
+        """
         for pass_ in passes:
             img = pass_.draw(img=img, coord_transformations=coord_transformations)
 
