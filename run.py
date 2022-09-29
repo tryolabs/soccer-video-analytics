@@ -27,7 +27,9 @@ parser.add_argument(
     type=str,
     help="Path to the input video",
 )
-parser.add_argument("--model", default="models/ball.pt", type=str, help="Path to the model")
+parser.add_argument(
+    "--model", default="models/ball.pt", type=str, help="Path to the model"
+)
 parser.add_argument(
     "--passes",
     action="store_true",
@@ -130,7 +132,9 @@ for i, frame in enumerate(video):
     frame = PIL.Image.fromarray(frame)
 
     if args.posession:
-        frame = Player.draw_players(players=players, frame=frame, confidence=False, id=True)
+        frame = Player.draw_players(
+            players=players, frame=frame, confidence=False, id=True
+        )
 
         frame = path.draw(
             img=frame,
@@ -160,7 +164,9 @@ for i, frame in enumerate(video):
             img=frame, passes=pass_list, coord_transformations=coord_transformations
         )
 
-        frame = match.draw_passes_counter(frame, counter_background=counter_background, debug=False)
+        frame = match.draw_passes_counter(
+            frame, counter_background=counter_background, debug=False
+        )
 
     frame = np.array(frame)
 

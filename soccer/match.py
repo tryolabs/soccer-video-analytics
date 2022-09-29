@@ -102,7 +102,8 @@ class Match:
                 self.last_player_with_ball = self.init_player_with_ball
 
             last_player_has_id = (
-                self.last_player_with_ball and "id" in self.last_player_with_ball.detection.data
+                self.last_player_with_ball
+                and "id" in self.last_player_with_ball.detection.data
             )
             closest_player_has_id = (
                 self.closest_player and "id" in self.closest_player.detection.data
@@ -116,7 +117,9 @@ class Match:
 
             if different_player and same_team:
                 # Generate new pass
-                start_pass = self.last_player_with_ball.closest_foot_to_ball_abs(self.ball)
+                start_pass = self.last_player_with_ball.closest_foot_to_ball_abs(
+                    self.ball
+                )
                 start_pass_bbox = [start_pass, start_pass]
 
                 team: Team = closest_player.team
@@ -128,7 +131,10 @@ class Match:
                 )
                 team.passes.append(new_pass)
             else:
-                if self.player_with_ball_counter < self.player_with_ball_threshold_dif_team:
+                if (
+                    self.player_with_ball_counter
+                    < self.player_with_ball_threshold_dif_team
+                ):
                     return
 
             self.last_player_with_ball = self.closest_player
@@ -165,10 +171,16 @@ class Match:
         init_player_has_id = init_player and "id" in init_player.detection.data
         closest_player_has_id = closest_player and "id" in closest_player.detection.data
 
-        same_id = init_player_has_id and closest_player_has_id and (init_player == closest_player)
+        same_id = (
+            init_player_has_id
+            and closest_player_has_id
+            and (init_player == closest_player)
+        )
 
         different_id = (
-            init_player_has_id and closest_player_has_id and not (init_player == closest_player)
+            init_player_has_id
+            and closest_player_has_id
+            and not (init_player == closest_player)
         )
 
         if same_id:
@@ -250,7 +262,9 @@ class Match:
 
         # Draw home text
         if ratio > 0.15:
-            home_text = f"{int(self.home.get_percentage_possession(self.duration) * 100)}%"
+            home_text = (
+                f"{int(self.home.get_percentage_possession(self.duration) * 100)}%"
+            )
 
             frame = Draw.text_in_middle_rectangle(
                 img=frame,
@@ -263,7 +277,9 @@ class Match:
 
         # Draw away text
         if ratio < 0.85:
-            away_text = f"{int(self.away.get_percentage_possession(self.duration) * 100)}%"
+            away_text = (
+                f"{int(self.away.get_percentage_possession(self.duration) * 100)}%"
+            )
 
             frame = Draw.text_in_middle_rectangle(
                 img=frame,
@@ -666,7 +682,9 @@ class Match:
             height=31,
             width=150,
         )
-        frame = self.possession_bar(frame, origin=(counter_origin[0] + 35, counter_origin[1] + 195))
+        frame = self.possession_bar(
+            frame, origin=(counter_origin[0] + 35, counter_origin[1] + 195)
+        )
 
         if self.closest_player:
             frame = self.closest_player.draw_pointer(frame)
@@ -731,7 +749,9 @@ class Match:
             height=31,
             width=150,
         )
-        frame = self.passes_bar(frame, origin=(counter_origin[0] + 35, counter_origin[1] + 195))
+        frame = self.passes_bar(
+            frame, origin=(counter_origin[0] + 35, counter_origin[1] + 195)
+        )
 
         if self.closest_player:
             frame = self.closest_player.draw_pointer(frame)
