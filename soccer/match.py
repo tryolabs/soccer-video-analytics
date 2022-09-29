@@ -462,11 +462,11 @@ class Match:
 
         return frame
 
-    def get_counter_backround(
+    def get_posession_backround(
         self,
     ) -> PIL.Image.Image:
         """
-        Get counter backround
+        Get posession counter backround
 
         Returns
         -------
@@ -474,7 +474,27 @@ class Match:
             Counter backround
         """
 
-        counter = PIL.Image.open("./images/board.png").convert("RGBA")
+        counter = PIL.Image.open("./images/posession_board.png").convert("RGBA")
+        counter = Draw.add_alpha(counter, 210)
+        counter = np.array(counter)
+        red, green, blue, alpha = counter.T
+        counter = np.array([blue, green, red, alpha])
+        counter = counter.transpose()
+        counter = PIL.Image.fromarray(counter)
+        counter = counter.resize((int(315 * 1.2), int(210 * 1.2)))
+        return counter
+
+    def get_passes_backround(self) -> PIL.Image.Image:
+        """
+        Get passes counter backround
+
+        Returns
+        -------
+        PIL.Image.Image
+            Counter backround
+        """
+
+        counter = PIL.Image.open("./images/passes_board.png").convert("RGBA")
         counter = Draw.add_alpha(counter, 210)
         counter = np.array(counter)
         red, green, blue, alpha = counter.T

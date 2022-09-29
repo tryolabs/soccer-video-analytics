@@ -89,7 +89,8 @@ coord_transformations = None
 path = AbsolutePath()
 
 # Get Counter img
-counter_background = match.get_counter_backround()
+posession_background = match.get_posession_backround()
+passes_background = match.get_passes_backround()
 
 for i, frame in enumerate(video):
 
@@ -144,7 +145,7 @@ for i, frame in enumerate(video):
         )
 
         frame = match.draw_posession_counter(
-            frame, counter_background=counter_background, debug=False
+            frame, counter_background=posession_background, debug=False
         )
 
         if ball:
@@ -162,7 +163,7 @@ for i, frame in enumerate(video):
         )
 
         frame = match.draw_passes_counter(
-            frame, counter_background=counter_background, debug=False
+            frame, counter_background=passes_background, debug=False
         )
 
     frame = np.array(frame)
