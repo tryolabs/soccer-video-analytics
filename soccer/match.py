@@ -44,7 +44,6 @@ class Match:
         self.player_with_ball_counter = 0
         self.player_with_ball_threshold = 3
         self.player_with_ball_threshold_dif_team = 4
-        self.passes = []
 
         self.closest_player = None
         self.ball = None
@@ -204,6 +203,13 @@ class Match:
     @property
     def time_possessions(self) -> str:
         return f"{self.home.name}: {self.home.get_time_possession(self.fps)} | {self.away.name}: {self.away.get_time_possession(self.fps)}"
+
+    @property
+    def get_passes(self) -> List["Pass"]:
+        home_passes = self.home.passes
+        away_passes = self.away.passes
+
+        return home_passes + away_passes
 
     def possession_bar(self, frame: PIL.Image.Image, origin: tuple) -> PIL.Image.Image:
         """
