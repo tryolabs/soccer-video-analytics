@@ -29,6 +29,7 @@ class Team:
         """
         self.name = name
         self.possession = 0
+        self.passes = []
         self.color = color
         self.abbreviation = abbreviation
         self.text_color = text_color
