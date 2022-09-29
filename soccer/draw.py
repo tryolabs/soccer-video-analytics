@@ -599,6 +599,7 @@ class AbsolutePath:
         length: int = 10,
         height: int = 6,
         thickness: int = 4,
+        alpha: int = 255,
     ) -> PIL.Image.Image:
 
         # https://stackoverflow.com/questions/43527894/drawing-arrowheads-which-follow-the-direction-of-the-line-in-pygame
@@ -630,6 +631,8 @@ class AbsolutePath:
 
         rightX = end[0] - length * udX - height * perpX
         rightY = end[1] - length * udY - height * perpY
+
+        color += (alpha,)
 
         draw.line(
             [(leftX, leftY), arrowend],
@@ -689,7 +692,12 @@ class AbsolutePath:
         return img
 
     def draw_path_fast(
-        self, img: PIL.Image.Image, path: List[PathPoint], color: tuple, width: int = 2
+        self,
+        img: PIL.Image.Image,
+        path: List[PathPoint],
+        color: tuple,
+        width: int = 2,
+        alpha: int = 255,
     ) -> PIL.Image.Image:
         """
         Draw a path without alpha (faster)
@@ -702,15 +710,19 @@ class AbsolutePath:
             Path
         color : tuple
             Color of the path
+        alpha : int
+            Color alpha (0-255)
 
         Returns
         -------
         PIL.Image.Image
             Image with the path drawn
         """
-        draw = PIL.ImageDraw.Draw(img)
+        draw = PIL.ImageDraw.Draw(img, "RGBA")
 
         path_list = [point.center for point in path]
+
+        color += (alpha,)
 
         draw.line(
             path_list,
@@ -721,21 +733,37 @@ class AbsolutePath:
         return img
 
     def draw_arrow(
-        self, img: PIL.Image.Image, points: List[PathPoint], color: tuple, width: int
+        self,
+        img: PIL.Image.Image,
+        points: List[PathPoint],
+        color: tuple,
+        width: int,
+        alpha: int = 255,
     ) -> PIL.Image.Image:
         """Draw arrow between two points
 
-        Args:
-            img (PIL.Image.Image): image to draw
-            points (List[PathPoint]): start and end points
-            color (tuple): color of the arrow
-            width (int): width of the arrow
+        Parameters
+        ----------
+        img : PIL.Image.Image
+            image to draw
+        points : List[PathPoint]
+            start and end points
+        color : tuple
+            color of the arrow
+        width : int
+            width of the arrow
+        alpha : int, optional
+            color alpha (0-255), by default 255
 
-        Returns:
-            PIL.Image.Image: Image with the arrow
+        Returns
+        -------
+        PIL.Image.Image
+            Image with the arrow
         """
 
-        img = self.draw_path_fast(img=img, path=points, color=color, width=width)
+        img = self.draw_path_fast(
+            img=img, path=points, color=color, width=width, alpha=alpha
+        )
         img = self.draw_arrow_head(
             img=img,
             start=points[0].center,
@@ -743,6 +771,7 @@ class AbsolutePath:
             color=color,
             length=30,
             height=15,
+            alpha=alpha,
         )
 
         return img
