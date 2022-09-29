@@ -8,12 +8,12 @@ from soccer.draw import AbsolutePath, PathPoint
 
 class Pass:
     def __init__(
-        self, start_ball_bbox: np.ndarray, end_ball_bbox: np.ndarray, color: tuple
+        self, start_ball_bbox: np.ndarray, end_ball_bbox: np.ndarray, team: "Team"
     ) -> None:
         # Abs coordinates
         self.start_ball_bbox = start_ball_bbox
         self.end_ball_bbox = end_ball_bbox
-        self.color = color
+        self.team = team
         self.draw_abs = AbsolutePath()
 
     def draw(self, img: PIL.Image.Image, coord_transformations) -> PIL.Image.Image:
@@ -30,13 +30,13 @@ class Pass:
             id=0,
             abs_point=self.start_ball_bbox,
             coord_transformations=coord_transformations,
-            color=self.color,
+            color=self.team.color,
         )
         rel_point_end = PathPoint.from_abs_bbox(
             id=1,
             abs_point=self.end_ball_bbox,
             coord_transformations=coord_transformations,
-            color=self.color,
+            color=self.team.color,
         )
 
         new_pass = [rel_point_start, rel_point_end]
@@ -50,7 +50,7 @@ class Pass:
 
         if len(pass_filtered) == 2:
             img = self.draw_abs.draw_arrow(
-                img=img, points=pass_filtered, color=self.color, width=6
+                img=img, points=pass_filtered, color=self.team.color, width=6
             )
 
         return img
