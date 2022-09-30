@@ -386,11 +386,11 @@ class Match:
 
         return frame
 
-    def get_posession_backround(
+    def get_possession_backround(
         self,
     ) -> PIL.Image.Image:
         """
-        Get posession counter backround
+        Get possession counter backround
 
         Returns
         -------
@@ -398,7 +398,7 @@ class Match:
             Counter backround
         """
 
-        counter = PIL.Image.open("./images/posession_board.png").convert("RGBA")
+        counter = PIL.Image.open("./images/possession_board.png").convert("RGBA")
         counter = Draw.add_alpha(counter, 210)
         counter = np.array(counter)
         red, green, blue, alpha = counter.T
@@ -577,7 +577,7 @@ class Match:
                 width=2,
             )
 
-    def draw_posession_counter(
+    def draw_possession_counter(
         self,
         frame: PIL.Image.Image,
         counter_background: PIL.Image.Image,
@@ -585,7 +585,7 @@ class Match:
     ) -> PIL.Image.Image:
         """
 
-        Draw elements of the posession in frame
+        Draw elements of the possession in frame
 
         Parameters
         ----------
