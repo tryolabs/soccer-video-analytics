@@ -117,39 +117,24 @@ class PassEvent:
         self.ball = ball
         self.closest_player = closest_player
 
-        init_player = self.init_player_with_ball
-
-        init_player_has_id = init_player and "id" in init_player.detection.data
-        closest_player_has_id = closest_player and "id" in closest_player.detection.data
-
-        same_id = (
-            init_player_has_id
-            and closest_player_has_id
-            and (init_player == closest_player)
-        )
-
-        different_id = (
-            init_player_has_id
-            and closest_player_has_id
-            and not (init_player == closest_player)
-        )
+        same_id = Player.have_same_id(self.init_player_with_ball, closest_player)
 
         if same_id:
             self.player_with_ball_counter += 1
-        elif different_id:
+        elif not same_id:
             self.player_with_ball_counter = 0
 
         self.init_player_with_ball = closest_player
 
-    def validate_pass(self, posible_start: Player, posible_end: Player) -> bool:
+    def validate_pass(self, start_player: Player, end_player: Player) -> bool:
         """
         Check if there is a pass between two players of the same team
 
         Parameters
         ----------
-        posible_start : Player
+        start_player : Player
             Player that originates the pass
-        posible_end : Player
+        end_player : Player
             Destination player of the pass
 
         Returns
@@ -157,14 +142,12 @@ class PassEvent:
         bool
             Valid pass occurred
         """
-        last_player_has_id = posible_start and "id" in posible_start.detection.data
-        closest_player_has_id = posible_end and "id" in posible_end.detection.data
-        players_id = last_player_has_id and closest_player_has_id
+        if Player.have_same_id(start_player, end_player):
+            return False
+        if start_player.team != end_player.team:
+            return False
 
-        different_player = players_id and not (posible_start == posible_end)
-        same_team = posible_start.team == posible_end.team
-
-        return different_player and same_team
+        return True
 
     def generate_pass(
         self, team: Team, start_pass: np.ndarray, end_pass: np.ndarray
@@ -206,8 +189,8 @@ class PassEvent:
                 self.last_player_with_ball = self.init_player_with_ball
 
             valid_pass = self.validate_pass(
-                posible_start=self.last_player_with_ball,
-                posible_end=self.closest_player,
+                start_player=self.last_player_with_ball,
+                end_player=self.closest_player,
             )
 
             if valid_pass:

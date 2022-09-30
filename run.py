@@ -89,8 +89,8 @@ coord_transformations = None
 path = AbsolutePath()
 
 # Get Counter img
-possession_background = match.get_possession_backround()
-passes_background = match.get_passes_backround()
+possession_background = match.get_possession_background()
+passes_background = match.get_passes_background()
 
 for i, frame in enumerate(video):
 
