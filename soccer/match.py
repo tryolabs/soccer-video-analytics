@@ -6,7 +6,7 @@ import PIL
 
 from soccer.ball import Ball
 from soccer.draw import Draw
-from soccer.pass_event import Pass
+from soccer.pass_event import Pass, PassEvent
 from soccer.player import Player
 from soccer.team import Team
 
@@ -32,21 +32,15 @@ class Match:
         self.team_possession = self.home
         self.current_team = self.home
         self.possession_counter = 0
+        self.closest_player = None
+        self.ball = None
         # Amount of consecutive frames new team has to have the ball in order to change possession
         self.possesion_counter_threshold = 20
         # Distance in pixels from player to ball in order to consider a player has the ball
         self.ball_distance_threshold = 45
         self.fps = fps
-
-        # Pass detection attributes
-        self.init_player_with_ball = None
-        self.last_player_with_ball = None
-        self.player_with_ball_counter = 0
-        self.player_with_ball_threshold = 3
-        self.player_with_ball_threshold_dif_team = 4
-
-        self.closest_player = None
-        self.ball = None
+        # Pass detection
+        self.pass_event = PassEvent()
 
     def update(self, players: List[Player], ball: Ball):
         """
@@ -93,50 +87,9 @@ class Match:
             self.change_team(self.current_team)
 
         # Pass detection
-        self.update_pass()
+        self.pass_event.update(closest_player=closest_player, ball=ball)
 
-        if self.player_with_ball_counter >= self.player_with_ball_threshold:
-            # init the last player with ball
-            if self.last_player_with_ball is None:
-                self.last_player_with_ball = self.init_player_with_ball
-
-            last_player_has_id = (
-                self.last_player_with_ball
-                and "id" in self.last_player_with_ball.detection.data
-            )
-            closest_player_has_id = (
-                self.closest_player and "id" in self.closest_player.detection.data
-            )
-            players_id = last_player_has_id and closest_player_has_id
-
-            different_player = players_id and not (
-                self.last_player_with_ball == self.closest_player
-            )
-            same_team = self.last_player_with_ball.team == self.closest_player.team
-
-            if different_player and same_team:
-                # Generate new pass
-                start_pass = self.last_player_with_ball.closest_foot_to_ball_abs(
-                    self.ball
-                )
-                start_pass_bbox = [start_pass, start_pass]
-
-                team: Team = closest_player.team
-
-                new_pass = Pass(
-                    start_ball_bbox=start_pass_bbox,
-                    end_ball_bbox=ball.detection.absolute_points,
-                    team=team,
-                )
-                team.passes.append(new_pass)
-            else:
-                if (
-                    self.player_with_ball_counter
-                    < self.player_with_ball_threshold_dif_team
-                ):
-                    return
-
-            self.last_player_with_ball = self.closest_player
+        self.pass_event.process_pass()
 
     def change_team(self, team: Team):
         """
@@ -159,35 +112,6 @@ class Match:
 
         self.team_possession.possession += 1
         self.duration += 1
-
-    def update_pass(self):
-        """
-        Updates the player with the ball counter
-        """
-        init_player = self.init_player_with_ball
-        closest_player = self.closest_player
-
-        init_player_has_id = init_player and "id" in init_player.detection.data
-        closest_player_has_id = closest_player and "id" in closest_player.detection.data
-
-        same_id = (
-            init_player_has_id
-            and closest_player_has_id
-            and (init_player == closest_player)
-        )
-
-        different_id = (
-            init_player_has_id
-            and closest_player_has_id
-            and not (init_player == closest_player)
-        )
-
-        if same_id:
-            self.player_with_ball_counter += 1
-        elif different_id:
-            self.player_with_ball_counter = 0
-
-        self.init_player_with_ball = self.closest_player
 
     @property
     def home_possession_str(self) -> str:
