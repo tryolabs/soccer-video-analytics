@@ -209,6 +209,29 @@ class Player:
         return self_id == other_id
 
     @staticmethod
+    def have_same_id(player1: "Player", player2: "Player") -> bool:
+        """
+        Check if player1 and player2 have the same ids
+
+        Parameters
+        ----------
+        player1 : Player
+            One player
+        player2 : Player
+            Another player
+
+        Returns
+        -------
+        bool
+            True if they have the same id
+        """
+        if not player1 or not player2:
+            return False
+        if "id" not in player1.detection.data or "id" not in player2.detection.data:
+            return False
+        return player1 == player2
+
+    @staticmethod
     def draw_players(
         players: List["Player"],
         frame: PIL.Image.Image,

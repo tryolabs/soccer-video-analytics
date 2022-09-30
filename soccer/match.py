@@ -386,16 +386,16 @@ class Match:
 
         return frame
 
-    def get_possession_backround(
+    def get_possession_background(
         self,
     ) -> PIL.Image.Image:
         """
-        Get possession counter backround
+        Get possession counter background
 
         Returns
         -------
         PIL.Image.Image
-            Counter backround
+            Counter background
         """
 
         counter = PIL.Image.open("./images/possession_board.png").convert("RGBA")
@@ -408,14 +408,14 @@ class Match:
         counter = counter.resize((int(315 * 1.2), int(210 * 1.2)))
         return counter
 
-    def get_passes_backround(self) -> PIL.Image.Image:
+    def get_passes_background(self) -> PIL.Image.Image:
         """
-        Get passes counter backround
+        Get passes counter background
 
         Returns
         -------
         PIL.Image.Image
-            Counter backround
+            Counter background
         """
 
         counter = PIL.Image.open("./images/passes_board.png").convert("RGBA")
