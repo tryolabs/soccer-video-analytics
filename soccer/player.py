@@ -1,3 +1,4 @@
+from array import array
 from typing import List
 
 import numpy as np
@@ -28,31 +29,42 @@ class Player:
             if "team" in detection.data:
                 self.team = detection.data["team"]
 
-    @property
-    def left_foot(self):
-        points = self.detection.points
-
+    def get_left_foot(self, points: np.array):
         x1, y1 = points[0]
         x2, y2 = points[1]
 
         return [x1, y2]
 
+    def get_right_foot(self, points: np.array):
+        return points[1]
+
+    @property
+    def left_foot(self):
+        points = self.detection.points
+        left_foot = self.get_left_foot(points)
+
+        return left_foot
+
     @property
     def right_foot(self):
-        return self.detection.points[1]
+        points = self.detection.points
+        right_foot = self.get_right_foot(points)
+
+        return right_foot
 
     @property
     def left_foot_abs(self):
         points = self.detection.absolute_points
+        left_foot_abs = self.get_left_foot(points)
 
-        x1, y1 = points[0]
-        x2, y2 = points[1]
-
-        return [x1, y2]
+        return left_foot_abs
 
     @property
     def right_foot_abs(self):
-        return self.detection.absolute_points[1]
+        points = self.detection.absolute_points
+        right_foot_abs = self.get_right_foot(points)
+
+        return right_foot_abs
 
     @property
     def feet(self) -> np.ndarray:

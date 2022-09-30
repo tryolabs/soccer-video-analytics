@@ -35,8 +35,30 @@ class Ball:
         if self.detection:
             self.detection.data["color"] = match.team_possession.color
 
+    def get_center(self, points: np.array) -> tuple:
+        """
+        Returns the center of the points
+
+        Parameters
+        ----------
+        points : np.array
+            2D points
+
+        Returns
+        -------
+        tuple
+            (x, y) coordinates of the center
+        """
+        x1, y1 = points[0]
+        x2, y2 = points[1]
+
+        center_x = (x1 + x2) / 2
+        center_y = (y1 + y2) / 2
+
+        return (center_x, center_y)
+
     @property
-    def center(self) -> tuple:
+    def center(self) -> np.array:
         """
         Returns the center of the ball
 
@@ -48,17 +70,13 @@ class Ball:
         if self.detection is None:
             return None
 
-        points = self.detection.points
-        x1, y1 = points[0]
-        x2, y2 = points[1]
+        center = self.get_center(self.detection.points)
+        round_center = np.round_(center)
 
-        center_y = (y1 + y2) / 2
-        center_x = (x1 + x2) / 2
-
-        return np.array([round(center_x), round(center_y)])
+        return round_center
 
     @property
-    def center_abs(self) -> tuple:
+    def center_abs(self) -> np.array:
         """
         Returns the center of the ball
 
@@ -70,14 +88,10 @@ class Ball:
         if self.detection is None:
             return None
 
-        points = self.detection.absolute_points
-        x1, y1 = points[0]
-        x2, y2 = points[1]
+        center = self.get_center(self.detection.absolute_points)
+        round_center = np.round_(center)
 
-        center_y = (y1 + y2) / 2
-        center_x = (x1 + x2) / 2
-
-        return np.array([round(center_x), round(center_y)])
+        return round_center
 
     def draw(self, frame: np.ndarray) -> np.ndarray:
         """
