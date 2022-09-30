@@ -31,7 +31,7 @@ match.team_possession = man_city
 
 frame = cv2.imread("images/city_gk_vs_referee.png")
 
-counter_background = match.get_posession_backround()
+counter_background = match.get_possession_backround()
 
 # Players
 player_detections = get_player_detections(person_detector, frame)

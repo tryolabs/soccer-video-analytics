@@ -23,7 +23,7 @@ from soccer.pass_event import Pass
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--video",
-    default="videos/soccer_posession.mp4",
+    default="videos/soccer_possession.mp4",
     type=str,
     help="Path to the input video",
 )
@@ -36,9 +36,9 @@ parser.add_argument(
     help="Enable pass detection",
 )
 parser.add_argument(
-    "--posession",
+    "--possession",
     action="store_true",
-    help="Enable posession counter",
+    help="Enable possession counter",
 )
 args = parser.parse_args()
 
@@ -89,7 +89,7 @@ coord_transformations = None
 path = AbsolutePath()
 
 # Get Counter img
-posession_background = match.get_posession_backround()
+possession_background = match.get_possession_backround()
 passes_background = match.get_passes_backround()
 
 for i, frame in enumerate(video):
@@ -132,7 +132,7 @@ for i, frame in enumerate(video):
     # Draw
     frame = PIL.Image.fromarray(frame)
 
-    if args.posession:
+    if args.possession:
         frame = Player.draw_players(
             players=players, frame=frame, confidence=False, id=True
         )
@@ -144,8 +144,8 @@ for i, frame in enumerate(video):
             color=match.team_possession.color,
         )
 
-        frame = match.draw_posession_counter(
-            frame, counter_background=posession_background, debug=False
+        frame = match.draw_possession_counter(
+            frame, counter_background=possession_background, debug=False
         )
 
         if ball:
