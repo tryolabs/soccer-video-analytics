@@ -1,4 +1,4 @@
-from typing import List
+from typing import Iterable, List
 
 import numpy as np
 import PIL
@@ -91,6 +91,118 @@ class Pass:
             img = pass_.draw(img=img, coord_transformations=coord_transformations)
 
         return img
+
+    def get_relative_coordinates(
+        self, coord_transformations: "CoordinatesTransformation"
+    ) -> tuple:
+        """
+        Print the relative coordinates of a pass
+
+        Parameters
+        ----------
+        coord_transformations : CoordinatesTransformation
+            Coordinates transformation
+
+        Returns
+        -------
+        tuple
+            (start, end) of the pass with relative coordinates
+        """
+        relative_start = coord_transformations.abs_to_rel(self.start_ball_bbox)
+        relative_end = coord_transformations.abs_to_rel(self.end_ball_bbox)
+
+        return (relative_start, relative_end)
+
+    def get_center(self, points: np.array) -> tuple:
+        """
+        Returns the center of the points
+
+        Parameters
+        ----------
+        points : np.array
+            2D points
+
+        Returns
+        -------
+        tuple
+            (x, y) coordinates of the center
+        """
+        x1, y1 = points[0]
+        x2, y2 = points[1]
+
+        center_x = (x1 + x2) / 2
+        center_y = (y1 + y2) / 2
+
+        return (center_x, center_y)
+
+    def round_iterable(self, iterable: Iterable) -> Iterable:
+        """
+        Round all entries from one Iterable object
+
+        Parameters
+        ----------
+        iterable : Iterable
+            Iterable to round
+
+        Returns
+        -------
+        Iterable
+            Rounded Iterable
+        """
+        return [round(item) for item in iterable]
+
+    def generate_output_pass(
+        self, start: np.ndarray, end: np.ndarray, team_name: str
+    ) -> str:
+        """
+        Generate a string with the pass information
+
+        Parameters
+        ----------
+        start : np.ndarray
+            The start point of the pass
+        end : np.ndarray
+            The end point of the pass
+        team_name : str
+            The team that did this pass
+
+        Returns
+        -------
+        str
+            String with the pass information
+        """
+        relative_start_point = self.get_center(start)
+        relative_end_point = self.get_center(end)
+
+        relative_start_round = self.round_iterable(relative_start_point)
+        relative_end_round = self.round_iterable(relative_end_point)
+
+        return f"Start: {relative_start_round}, End: {relative_end_round}, Team: {team_name}"
+
+    def tostring(self, coord_transformations: "CoordinatesTransformation") -> str:
+        """
+        Get a string with the relative coordinates of this pass
+
+        Parameters
+        ----------
+        coord_transformations : CoordinatesTransformation
+            Coordinates transformation
+
+        Returns
+        -------
+        str
+            string with the relative coordinates
+        """
+        relative_start, relative_end = self.get_relative_coordinates(
+            coord_transformations
+        )
+
+        return self.generate_output_pass(relative_start, relative_end, self.team.name)
+
+    def __str__(self):
+        return self.generate_output_pass(
+            self.start_ball_bbox, self.end_ball_bbox, self.team.name
+        )
 
 
 class PassEvent:
