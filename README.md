@@ -6,7 +6,8 @@ Demo on how to track soccer ball possession.
 <img src="https://raw.githubusercontent.com/tryolabs/soccer-video-analytics/main/images/thumbnail.png?token=GHSAT0AAAAAABU43Y7T7CL25XGPEKWDQA32YZUR2FA" width="60%" height="50%">
 </a>
 
->__Note__:This repository was created in conjunction with this blog. If you want to know the details of the solution, I strongly encourage you to read the blog.
+
+>__Note__: This repository was created in conjunction with this blog. If you want to know the details of the solution, I strongly encourage you to read the blog.
 
 Detection for both players and ball was made using YOLOv5. The weights for the player detector are downloaded from Pytorch Hub using the default pre trained weights. The ball detector weights were trained using a custom dataset. For downloading the weights for the ball detector, click the following link.
 

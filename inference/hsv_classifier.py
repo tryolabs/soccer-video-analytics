@@ -1,9 +1,13 @@
-from typing import List
+import copy
+import json
+from typing import List, Tuple
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 
 from inference.base_classifier import BaseClassifier
+from inference.colors import all
 
 
 class HSVClassifier(BaseClassifier):
@@ -13,22 +17,37 @@ class HSVClassifier(BaseClassifier):
 
         Parameters
         ----------
-        filters : List[dict]
-            List of filters to classify.
+        filters: List[dict]
+            List of colors to classify
+
+            If you want to add a specific color, you can add it as a Python dictionary with the following format:
+
+            custom_color = {
+                "name":"my_custom_color",
+                "lower_hsv": (0, 0, 0),
+                "upper_hsv": (179, 255, 255)
+            }
 
             Format:
             [
                 {
-                    "name": "Chelsea",
-                    "lower_hsv": (112, 0, 0),
-                    "upper_hsv": (179, 255, 255),
+                    "name": "Boca Juniors",
+                    "colors": [inferece.colors.blue, inference.colors.yellow],
                 },
                 {
-                    "name": "Man City",
-                    "lower_hsv": (91, 0, 0),
-                    "upper_hsv": (112, 255, 255),
-                }
+                    "name": "River Plate",
+                    "colors": [inference.colors.red, inference.colors.white],
+                },
+                {
+                    "name": "Real Madrid",
+                    "colors": [inference.colors.white],
+                },
+                {
+                    "name": "Barcelona",
+                    "colors": [custom_color],
+                },
             ]
+
         """
         super().__init__()
 
@@ -110,6 +129,49 @@ class HSVClassifier(BaseClassifier):
         if a_tuple[2] < 0 or a_tuple[2] > 255:
             raise ValueError(f"{name} value must be between 0 and 255")
 
+    def check_color_format(self, color: dict) -> dict:
+        """
+        Check color format
+
+        Parameters
+        ----------
+        color : dict
+            Color to check
+
+        Returns
+        -------
+        dict
+            Color checked
+
+        Raises
+        ------
+        ValueError
+            If color is not a dict
+        ValueError
+            If color does not have a lower hsv
+        ValueError
+            If color does not have an upper hsv
+        ValueError
+            If lower hsv doesnt have correct tuple format
+        ValueError
+            If upper hsv doesnt have correct tuple format
+        """
+
+        if type(color) != dict:
+            raise ValueError("Color must be a dict")
+        if "lower_hsv" not in color:
+            raise ValueError("Color must have a lower hsv")
+        if "upper_hsv" not in color:
+            raise ValueError("Color must have an upper hsv")
+
+        self.check_tuple_format(color["lower_hsv"], "lower_hsv")
+        self.check_tuple_format(color["upper_hsv"], "upper_hsv")
+
+        self.check_tuple_intervals(color["lower_hsv"], "lower_hsv")
+        self.check_tuple_intervals(color["upper_hsv"], "upper_hsv")
+
+        return color
+
     def check_filter_format(self, filter: dict) -> dict:
         """
         Check filter format
@@ -146,20 +208,18 @@ class HSVClassifier(BaseClassifier):
             raise ValueError("Filter must be a dict")
         if "name" not in filter:
             raise ValueError("Filter must have a name")
-        if "lower_hsv" not in filter:
-            raise ValueError("Filter must have a lower hsv")
-        if "upper_hsv" not in filter:
-            raise ValueError("Filter must have an upper hsv")
+        if "colors" not in filter:
+            raise ValueError("Filter must have colors")
 
-        # Check name is a string
         if type(filter["name"]) != str:
             raise ValueError("Filter name must be a string")
 
-        self.check_tuple_format(filter["lower_hsv"], "lower_hsv")
-        self.check_tuple_format(filter["upper_hsv"], "upper_hsv")
+        if type(filter["colors"]) != list:
+            raise ValueError("Filter colors must be a list")
 
-        self.check_tuple_intervals(filter["lower_hsv"], "lower_hsv")
-        self.check_tuple_intervals(filter["upper_hsv"], "upper_hsv")
+        filter["colors"] = [
+            self.check_color_format(color) for color in filter["colors"]
+        ]
 
         return filter
 
@@ -257,6 +317,28 @@ class HSVClassifier(BaseClassifier):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         return cv2.countNonZero(img)
 
+    def crop_filter_and_blur_img(self, img: np.ndarray, filter: dict) -> np.ndarray:
+        """
+        Crops image to get only the jersey part. Filters the colors and adds a median blur.
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image to crop
+        filter : dict
+            Filter to apply
+
+        Returns
+        -------
+        np.ndarray
+            Cropped image
+        """
+        transformed_img = img.copy()
+        transformed_img = self.crop_img_for_jersey(transformed_img)
+        transformed_img = self.apply_filter(transformed_img, filter)
+        transformed_img = self.add_median_blur(transformed_img)
+        return transformed_img
+
     def set_power_in_filter(self, img: np.ndarray, filter: dict) -> dict:
         """
         Applies filter to image and saves the output power in the filter.
@@ -273,11 +355,8 @@ class HSVClassifier(BaseClassifier):
         dict
             Filter with power
         """
-        img_filtered = img.copy()
-        img_filtered = self.crop_img_for_jersey(img_filtered)
-        img_filtered = self.apply_filter(img_filtered, filter)
-        img_filtered = self.add_median_blur(img_filtered)
-        filter["power"] = self.get_img_power(img_filtered)
+        transformed_img = self.crop_filter_and_blur_img(img, filter)
+        filter["power"] = self.get_img_power(transformed_img)
         return filter
 
     def predict_img(self, img: np.ndarray) -> str:
@@ -293,11 +372,23 @@ class HSVClassifier(BaseClassifier):
         -------
         str
             Name of the filter with most power
+        float
+            Confidence of the filter with most power
         """
-        for i, filter in enumerate(self.filters):
-            self.filters[i] = self.set_power_in_filter(img, filter)
+        if img is None:
+            raise ValueError("Image can't be None")
 
-        max_power_filter = max(self.filters, key=lambda x: x["power"])
+        filters = copy.deepcopy(self.filters)
+
+        for i, filter in enumerate(filters):
+            for color in filter["colors"]:
+                color = self.set_power_in_filter(img, color)
+                if "power" not in filter:
+                    filter["power"] = 0
+                filter["power"] += color["power"]
+
+        max_power_filter = max(filters, key=lambda x: x["power"])
+
         return max_power_filter["name"]
 
     def predict(self, input_image: List[np.ndarray]) -> str:
@@ -319,3 +410,76 @@ class HSVClassifier(BaseClassifier):
             input_image = [input_image]
 
         return [self.predict_img(img) for img in input_image]
+
+    def transform_image_for_every_color(
+        self, img: np.ndarray, colors: List[dict] = None
+    ) -> List[dict]:
+        """
+        Transforms image for every color in every filter.
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image to transform
+        colors : List[dict], optional
+            List of colors to transform image for, by default None
+
+        Returns
+        -------
+        List[dict]
+            List of Transformed images
+
+            [
+                {
+                    "red": image,
+                },
+                {
+                    "blue": image,
+                }
+            ]
+        """
+        transformed_imgs = {}
+
+        colors_to_transform = all
+        if colors:
+            colors_to_transform = colors
+
+        for color in colors_to_transform:
+            transformed_imgs[color["name"]] = self.crop_filter_and_blur_img(img, color)
+        return transformed_imgs
+
+    def plot_every_color_output(
+        self, img: np.ndarray, colors: List[dict] = None, save_img_path: str = None
+    ):
+        """
+        Plots every color output of the image.
+
+        Parameters
+        ----------
+        img : np.ndarray
+            Image to plot
+        colors : List[dict], optional
+            List of colors to plot, by default None
+        save_img_path : str, optional
+            Path to save image to, by default None
+        """
+        transformed_imgs = self.transform_image_for_every_color(img, colors)
+        transformed_imgs["original"] = img
+
+        # amount of images to plot
+        n = len(transformed_imgs)
+
+        # plot grid with every image and the title is transformed_imgs key
+        # set subplot size with n amount of images to plut
+        fig, axs = plt.subplots(1, n, figsize=(n * 5, 5))
+
+        fig.suptitle("Every color output")
+        for i, (key, value) in enumerate(transformed_imgs.items()):
+            # convert value from bgr to rgb
+            value = cv2.cvtColor(value, cv2.COLOR_BGR2RGB)
+            axs[i].imshow(value)
+            axs[i].set_title(key)
+        plt.show()
+
+        if save_img_path is not None:
+            fig.savefig(save_img_path)

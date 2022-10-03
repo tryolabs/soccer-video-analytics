@@ -1,6 +1,9 @@
+import json
+import os
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Counter, List, Tuple
 
+import cv2
 import norfair
 import numpy as np
 import pandas as pd
@@ -108,3 +111,42 @@ class BaseClassifier(ABC):
             detection.data["classification"] = name
 
         return detections
+
+    def accuarcy_on_folder(
+        self, folder_path: str, label: str
+    ) -> Tuple[float, List[np.ndarray]]:
+        """
+        Calculates the accuracy of the classifier on a folder
+
+        Parameters
+        ----------
+        folder_path : str
+            Path to the folder containing the images of the same label
+        label : str
+            Label of the images in the folder
+
+        Returns
+        -------
+        float
+            Accuracy of the classifier
+        List[np.ndarray]
+            List of the images that were misclassified
+        """
+        # load images in array
+        images = []
+        for filename in os.listdir(folder_path):
+            img = cv2.imread(os.path.join(folder_path, filename))
+            if img is not None:
+                images.append(img)
+
+        predictions = self.predict(images)
+
+        missclassified = [images[i] for i, x in enumerate(predictions) if x != label]
+
+        counter = Counter()
+        for prediction in predictions:
+            counter[prediction] += 1
+
+        print(json.dumps(counter, indent=4))
+
+        return counter[label] / len(predictions), missclassified
