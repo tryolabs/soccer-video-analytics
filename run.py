@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import PIL
 from norfair import Tracker, Video
@@ -17,6 +18,8 @@ from soccer import Draw, Match, Player, Team
 from soccer.draw import AbsolutePath
 
 video = Video(input_path="videos/soccer_posession.mp4")
+fps = video.video_capture.get(cv2.CAP_PROP_FPS)
+
 
 # Object Detectors
 player_detector = YoloV5()
@@ -44,7 +47,7 @@ chelsea = Team(
     text_color=(255, 255, 255),
 )
 teams = [man_city, chelsea]
-match = Match(home=chelsea, away=man_city, fps=25)
+match = Match(home=chelsea, away=man_city, fps=fps)
 match.team_possession = man_city
 
 # Tracking
