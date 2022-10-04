@@ -58,7 +58,7 @@ class Ball:
         return (center_x, center_y)
 
     @property
-    def center(self) -> np.array:
+    def center(self) -> tuple:
         """
         Returns the center of the ball
 
@@ -76,7 +76,7 @@ class Ball:
         return round_center
 
     @property
-    def center_abs(self) -> np.array:
+    def center_abs(self) -> tuple:
         """
         Returns the center of the ball
 

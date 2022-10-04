@@ -129,7 +129,7 @@ class Match:
         return f"{self.home.name}: {self.home.get_time_possession(self.fps)} | {self.away.name}: {self.away.get_time_possession(self.fps)}"
 
     @property
-    def get_passes(self) -> List["Pass"]:
+    def passes(self) -> List["Pass"]:
         home_passes = self.home.passes
         away_passes = self.away.passes
 
