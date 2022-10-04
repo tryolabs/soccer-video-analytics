@@ -203,6 +203,9 @@ class Player:
         return f"Player: {self.feet}, team: {self.team}"
 
     def __eq__(self, other: "Player") -> bool:
+        if isinstance(self, Player) == False or isinstance(other, Player) == False:
+            return False
+
         self_id = self.detection.data["id"]
         other_id = other.detection.data["id"]
 
