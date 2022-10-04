@@ -94,6 +94,12 @@ class Team:
     def __str__(self):
         return self.name
 
+    def __eq__(self, other: "Team") -> bool:
+        if isinstance(self, Team) == False or isinstance(other, Team) == False:
+            return False
+
+        return self.name == other.name
+
     @staticmethod
     def from_name(teams: List["Team"], name: str) -> "Team":
         """
