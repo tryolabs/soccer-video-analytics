@@ -1,5 +1,4 @@
 from math import sqrt
-from pathlib import Path
 from typing import List
 
 import norfair
@@ -710,6 +709,8 @@ class AbsolutePath:
             Path
         color : tuple
             Color of the path
+        with : int
+            Width of the line
         alpha : int
             Color alpha (0-255)
 
