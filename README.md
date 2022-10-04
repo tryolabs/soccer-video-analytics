@@ -3,7 +3,7 @@
 Demo on how to track soccer ball possession.
 
 <a href="https://www.youtube.com/watch?v=CWnlGBVaRpQ">
-<img src="https://raw.githubusercontent.com/tryolabs/soccer-video-analytics/main/images/thumbnail.png?token=GHSAT0AAAAAABU43Y7T7CL25XGPEKWDQA32YZUR2FA" width="60%" height="50%">
+<img src="https://user-images.githubusercontent.com/33181424/193869946-ad7e3973-a28e-4640-8494-bf899d5df3a7.png" width="60%" height="50%">
 </a>
 
 
