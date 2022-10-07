@@ -609,6 +609,9 @@ class AbsolutePath:
         # vector length
         Len = sqrt(dX * dX + dY * dY)  # use Hypot if available
 
+        if Len == 0:
+            return img
+
         # normalized direction vector components
         udX = dX / Len
         udY = dY / Len

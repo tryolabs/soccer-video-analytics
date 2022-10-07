@@ -1,6 +1,5 @@
 import copy
-import json
-from typing import List, Tuple
+from typing import List
 
 import cv2
 import matplotlib.pyplot as plt
@@ -19,14 +18,6 @@ class HSVClassifier(BaseClassifier):
         ----------
         filters: List[dict]
             List of colors to classify
-
-            If you want to add a specific color, you can add it as a Python dictionary with the following format:
-
-            custom_color = {
-                "name":"my_custom_color",
-                "lower_hsv": (0, 0, 0),
-                "upper_hsv": (179, 255, 255)
-            }
 
             Format:
             [
@@ -48,6 +39,15 @@ class HSVClassifier(BaseClassifier):
                 },
             ]
 
+            If you want to add a specific color, you can add it as a Python dictionary with the following format:
+
+            custom_color = {
+                "name":"my_custom_color",
+                "lower_hsv": (0, 0, 0),
+                "upper_hsv": (179, 255, 255)
+            }
+
+            You can find your custom hsv range with an online tool like https://github.com/hariangr/HsvRangeTool
         """
         super().__init__()
 

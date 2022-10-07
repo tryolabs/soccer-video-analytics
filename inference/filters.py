@@ -1,8 +1,8 @@
-from inference.colors import black, blue, sky_blue, yellow
+from inference.colors import black, blue, green, sky_blue
 
 chelsea_filter = {
     "name": "Chelsea",
-    "colors": [blue, yellow],
+    "colors": [blue, green],
 }
 
 city_filter = {
