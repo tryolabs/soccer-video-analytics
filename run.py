@@ -5,7 +5,7 @@ from norfair import Tracker, Video
 from norfair.camera_motion import MotionEstimator
 from norfair.distances import mean_euclidean
 
-from inference import Converter, HSVClassifier, InertiaClassifier, NNClassifier, YoloV5
+from inference import Converter, HSVClassifier, InertiaClassifier, YoloV5
 from inference.filters import filters
 from run_utils import (
     classify_city_gk,
@@ -14,22 +14,15 @@ from run_utils import (
     get_player_detections,
     update_motion_estimator,
 )
-from soccer import Draw, Match, Player, Team
+from soccer import Match, Player, Team
 from soccer.draw import AbsolutePath
 
 video = Video(input_path="videos/soccer_posession.mp4")
 fps = video.video_capture.get(cv2.CAP_PROP_FPS)
 
-
 # Object Detectors
 player_detector = YoloV5()
 ball_detector = YoloV5(model_path="models/ball.pt")
-
-# NN Classifier
-# nn_classifier = NNClassifier(
-#     model_path="models/model_classification.pt",
-#     classes=["Chelsea", "Man City", "Referee"],
-# )
 
 # HSV Classifier
 hsv_classifier = HSVClassifier(filters=filters)
@@ -38,7 +31,6 @@ hsv_classifier = HSVClassifier(filters=filters)
 classifier = InertiaClassifier(classifier=hsv_classifier, inertia=20)
 
 # Teams and Match
-man_city = Team(name="Man City", abbreviation="MNC", color=(240, 230, 188))
 chelsea = Team(
     name="Chelsea",
     abbreviation="CHE",
@@ -46,7 +38,8 @@ chelsea = Team(
     board_color=(244, 86, 64),
     text_color=(255, 255, 255),
 )
-teams = [man_city, chelsea]
+man_city = Team(name="Man City", abbreviation="MNC", color=(240, 230, 188))
+teams = [chelsea, man_city]
 match = Match(home=chelsea, away=man_city, fps=fps)
 match.team_possession = man_city
 
@@ -61,7 +54,7 @@ player_tracker = Tracker(
 ball_tracker = Tracker(
     distance_function=mean_euclidean,
     distance_threshold=200,
-    initialization_delay=10,
+    initialization_delay=15,
     hit_counter_max=2000,
 )
 motion_estimator = MotionEstimator()

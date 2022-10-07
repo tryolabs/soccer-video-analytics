@@ -128,7 +128,7 @@ class Draw:
     def draw_detection(
         detection: norfair.Detection,
         img: PIL.Image.Image,
-        condifence: bool = False,
+        confidence: bool = False,
         id: bool = False,
     ) -> PIL.Image.Image:
         """
@@ -140,7 +140,7 @@ class Draw:
             Detection to draw
         img : PIL.Image.Image
             Image
-        condifence : bool, optional
+        confidence : bool, optional
             Whether to draw confidence in the box, by default False
         id : bool, optional
             Whether to draw id in the box, by default False
@@ -181,7 +181,7 @@ class Draw:
                 color=color,
             )
 
-        if condifence:
+        if confidence:
             img = Draw.draw_text(
                 img=img,
                 origin=(x1, y2),

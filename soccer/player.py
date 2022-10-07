@@ -121,7 +121,7 @@ class Player:
         if self.team is not None:
             self.detection.data["color"] = self.team.color
 
-        return Draw.draw_detection(self.detection, frame, condifence=confidence, id=id)
+        return Draw.draw_detection(self.detection, frame, confidence=confidence, id=id)
 
     def draw_pointer(self, frame: np.ndarray) -> np.ndarray:
         """
