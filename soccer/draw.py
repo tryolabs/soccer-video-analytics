@@ -631,7 +631,8 @@ class AbsolutePath:
         rightX = end[0] - length * udX - height * perpX
         rightY = end[1] - length * udY - height * perpY
 
-        color += (alpha,)
+        if len(color) <= 3:
+            color += (alpha,)
 
         draw.line(
             [(leftX, leftY), arrowend],
