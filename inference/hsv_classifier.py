@@ -468,11 +468,8 @@ class HSVClassifier(BaseClassifier):
         transformed_imgs = self.transform_image_for_every_color(img, colors)
         transformed_imgs["original"] = img
 
-        # amount of images to plot
         n = len(transformed_imgs)
 
-        # plot grid with every image and the title is transformed_imgs key
-        # set subplot size with n amount of images to plut
         fig, axs = plt.subplots(1, n, figsize=(n * 5, 5))
 
         fig.suptitle("Every color output")
