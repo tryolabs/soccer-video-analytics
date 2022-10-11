@@ -23,7 +23,7 @@ The main loop can be found in the file `run.py`. It is a simple loop that reads 
 
 ## How to install
 
-To install the necessary dependencies we use [Poetry](https://python-poetry.org/docs). You can find a `poetry.lock` in this project with all dependencies.
+To install the necessary dependencies we use [Poetry](https://python-poetry.org/docs). You can find the file `poetry.lock` in this project with all the dependencies.
 
 The following steps describe the installation process.
 
@@ -48,16 +48,16 @@ After installing the dependencies, you have to initialize the environment with t
 poetry shell
 ```
 
-Once the environment was created, the possession and passes counter could be run.
+Once the environment is created, the possession and passes counter can be run.
 
 To run one of these applications you need to use flags in the console.
 
-These flags are defined in the following chart.
+These flags are defined in the following table:
 
 | Argument | Description | Default value |
 | ----------- | ----------- | ----------- |
 | application | Set it to `possession` to run the possession counter or `passes` if you like to run the passes counter | None, but mandatory |
-| path-to-the-model | Path to the model weights (`pt` format) | `/models/ball.pt` |
+| path-to-the-model | Path to the soccer ball model weights (`pt` format) | `/models/ball.pt` |
 | path-to-the-video | Path to the input video | `/videos/soccer_possession.mp4` |
 
 
@@ -69,4 +69,4 @@ python run.py --<application> --model <path-to-the-model> --video <path-to-the-v
 
 >__Warning__: You have to run this command on the root of the project folder.
 
-After the execution will be generated a file with the same name as the input video concatenated with `_out` indicating that this is the output file.
+An mp4 video will be generated after the execution. The name is the same as the input video with the suffix `_out` added.
