@@ -52,9 +52,8 @@ class BaseClassifier(ABC):
         TypeError
             If df is not a pandas DataFrame
         """
-
-        if type(df) != pd.DataFrame:
-            raise TypeError("result must be a pandas DataFrame")
+        if not isinstance(df, pd.DataFrame):
+            raise TypeError("df must be a pandas DataFrame")
 
         box_images = []
 
@@ -132,7 +131,6 @@ class BaseClassifier(ABC):
         List[np.ndarray]
             List of the images that were misclassified
         """
-        # load images in array
         images = []
         for filename in os.listdir(folder_path):
             img = cv2.imread(os.path.join(folder_path, filename))
