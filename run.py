@@ -10,7 +10,6 @@ from norfair.distances import mean_euclidean
 from inference import Converter, HSVClassifier, InertiaClassifier, YoloV5
 from inference.filters import filters
 from run_utils import (
-    classify_city_gk,
     get_ball_detections,
     get_main_ball,
     get_player_detections,
@@ -78,8 +77,8 @@ player_tracker = Tracker(
 
 ball_tracker = Tracker(
     distance_function=mean_euclidean,
-    distance_threshold=200,
-    initialization_delay=15,
+    distance_threshold=150,
+    initialization_delay=20,
     hit_counter_max=2000,
 )
 motion_estimator = MotionEstimator()
@@ -122,8 +121,6 @@ for i, frame in enumerate(video):
         img=frame,
     )
 
-    classify_city_gk(player_detections)
-
     # Match update
     ball = get_main_ball(ball_detections)
     players = Player.from_detections(detections=players_detections, teams=teams)
@@ -150,10 +147,6 @@ for i, frame in enumerate(video):
 
         if ball:
             frame = ball.draw(frame)
-
-        # frame = player_path_drawer.draw(
-        #     frame, player_track_objects, coord_transform=coord_transformations
-        # )
 
     if args.passes:
         pass_list = match.passes

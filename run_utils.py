@@ -30,6 +30,7 @@ def get_ball_detections(
         List of ball detections
     """
     ball_df = ball_detector.predict(frame)
+    ball_df = ball_df[ball_df["confidence"] > 0.3]
     return Converter.DataFrame_to_Detections(ball_df)
 
 
@@ -169,26 +170,3 @@ def get_main_ball(detections: List[Detection], match: Match = None) -> Ball:
         ball.detection = detections[0]
 
     return ball
-
-
-def classify_city_gk(detections: List[Detection]):
-    """
-
-    Classifies the city goalkeeper from a list of player detections
-
-    Parameters
-    ----------
-    detections : List[Detection]
-        List of player detections
-    """
-
-    referee_detections = [
-        detection
-        for detection in detections
-        if detection.data["classification"] == "Referee"
-    ]
-
-    if len(referee_detections) == 2:
-        # get the detection at the left
-        city_gk_detection = min(referee_detections, key=lambda x: x.points[0][0])
-        city_gk_detection.data["classification"] = "Man City"
