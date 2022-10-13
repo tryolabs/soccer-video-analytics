@@ -7,7 +7,7 @@ This repository contains the companion code of our blogpost on how to automatica
 <img src="https://user-images.githubusercontent.com/33181424/193869946-ad7e3973-a28e-4640-8494-bf899d5df3a7.png" width="60%" height="50%">
 </a>
 
-The scope of this repo is not to provide a production-ready solution, many limitations need to be addressed before this is used in the real world. However, it can be used as a starting point for further research and development.
+The scope of this repository is not to provide a production-ready solution, as we explained in the blogpost, many limitations need to be addressed before this is used in the real world. However, it can be used as a starting point for further research and development.
 
 
 ## How to install
@@ -64,10 +64,9 @@ python run.py --<application> --model <path-to-the-model> --video <path-to-the-v
 
 >__Warning__: You have to run this command on the root of the project folder.
 
-An mp4 video will be generated after the execution. The name is the same as the input video with the suffix `_out` added.
-
 Here is an example on how to run the command:
     
 ```bash
 python run.py --possession --model models/ball.pt --video videos/soccer_possession.mp4
 ```
+An mp4 video will be generated after the execution. The name is the same as the input video with the suffix `_out` added.
