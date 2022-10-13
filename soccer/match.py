@@ -179,8 +179,6 @@ class Match:
         left_color = self.home.board_color
         right_color = self.away.board_color
 
-        # Draw first one rectangle or another in orther to make the
-        # rectangle bigger for better rounded corners
         frame = self.draw_counter_rectangle(
             frame=frame,
             ratio=ratio,
@@ -253,6 +251,10 @@ class Match:
         PIL.Image.Image
             Drawed video frame
         """
+
+        # Draw first one rectangle or another in orther to make the
+        # rectangle bigger for better rounded corners
+
         if ratio < 0.15:
             left_rectangle[1][0] += 20
 
@@ -316,14 +318,12 @@ class Match:
         away_passes = len(self.away.passes)
         total_passes = home_passes + away_passes
 
-        try:
-            home_ratio = home_passes / total_passes
-        except Exception:
+        if total_passes == 0:
             home_ratio = 0
-        try:
-            away_ratio = away_passes / total_passes
-        except Exception:
             away_ratio = 0
+        else:
+            home_ratio = home_passes / total_passes
+            away_ratio = away_passes / total_passes
 
         ratio = home_ratio
 

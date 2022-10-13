@@ -78,7 +78,7 @@ class Ball:
     @property
     def center_abs(self) -> tuple:
         """
-        Returns the center of the ball
+        Returns the center of the ball in absolute coordinates
 
         Returns
         -------
