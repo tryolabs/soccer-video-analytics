@@ -25,6 +25,8 @@ To install the necessary dependencies we use [Poetry](https://python-poetry.org/
    poetry install
    ```
 
+3. Optionally, download the ball.pt file [from the GitHub release](https://github.com/tryolabs/soccer-video-analytics/releases/tag/v0). Please note that this is just a toy model that overfits to a few videos, not a robust ball detection model.
+
 ## How to run
 
 First, make sure to initialize your environment using `poetry shell`.
