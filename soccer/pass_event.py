@@ -212,7 +212,7 @@ class PassEvent:
         self.init_player_with_ball = None
         self.last_player_with_ball = None
         self.player_with_ball_counter = 0
-        self.player_with_ball_threshold = 3
+        self.player_with_ball_threshold = 1
         self.player_with_ball_threshold_dif_team = 4
 
     def update(self, closest_player: Player, ball: Ball) -> None:
