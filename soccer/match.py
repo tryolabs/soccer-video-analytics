@@ -37,7 +37,7 @@ class Match:
         # Amount of consecutive frames new team has to have the ball in order to change possession
         self.possesion_counter_threshold = 20
         # Distance in pixels from player to ball in order to consider a player has the ball
-        self.ball_distance_threshold = 45
+        self.ball_distance_threshold = 30
         self.fps = fps
         # Pass detection
         self.pass_event = PassEvent()

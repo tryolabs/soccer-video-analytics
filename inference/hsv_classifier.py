@@ -358,7 +358,7 @@ class HSVClassifier(BaseClassifier):
 
     def predict_img(self, img: np.ndarray) -> str:
         """
-        Gets the filter with most non blakc pixels on img and returns its name.
+        Gets the filter with most non black pixels on img and returns its name.
 
         Parameters
         ----------
